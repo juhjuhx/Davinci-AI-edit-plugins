@@ -806,8 +806,7 @@ def main():
 
     if host not in ("127.0.0.1", "localhost", "::1"):
         logger.warning(
-            f"伺服器綁定到 {host},將對外網路開放且無身份驗證。"
-            "請確認你了解風險,或改用 127.0.0.1 + reverse proxy。"
+            f"伺服器綁定到 {host},將對外網路開放且無身份驗證。請確認你了解風險,或改用 127.0.0.1 + reverse proxy。"
         )
 
     get_app_worker()

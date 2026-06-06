@@ -143,4 +143,3 @@ def test_to_dict_strips_compat_with_legacy_cache_files():
     seg = AnalysisSegment.from_dict(legacy)
     assert seg.id == 1
     assert seg.is_kept is True
-
