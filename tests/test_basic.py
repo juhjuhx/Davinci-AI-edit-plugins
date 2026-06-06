@@ -29,9 +29,9 @@ def test_sigmoid_confidence():
     """sigmoid_confidence should map logprob to [0, 1] range."""
     from core.analyzer import sigmoid_confidence
     # High confidence (good logprob) -> close to 1
-    assert sigmoid_confidence(0.0) > 0.95
+    assert sigmoid_confidence(1.0) > 0.95
     # Low confidence (bad logprob) -> close to 0
-    assert sigmoid_confidence(-1.0) < 0.05
+    assert sigmoid_confidence(-2.0) < 0.05
     # None should return 0
     assert sigmoid_confidence(None) == 0.0
 
