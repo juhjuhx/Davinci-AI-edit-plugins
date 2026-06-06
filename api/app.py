@@ -804,6 +804,12 @@ def main():
     print(f"  LLM: {'✓' if config.llm.get('enabled') else '✗ (disabled)'}")
     print("=" * 60)
 
+    if host not in ("127.0.0.1", "localhost", "::1"):
+        logger.warning(
+            f"伺服器綁定到 {host},將對外網路開放且無身份驗證。"
+            "請確認你了解風險,或改用 127.0.0.1 + reverse proxy。"
+        )
+
     get_app_worker()
     app.run(host=host, port=port, debug=False, threaded=True, use_reloader=False)
 

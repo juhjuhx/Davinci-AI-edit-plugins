@@ -85,13 +85,37 @@ class AnalysisSegment:
         return self.effective_type == SegmentType.USABLE
 
     def to_dict(self) -> Dict[str, Any]:
-        d = asdict(self)
-        d["type"] = self.type.value
-        d["priority"] = self.priority.value
-        d["effective_type"] = self.effective_type.value
-        d["is_kept"] = self.is_kept
-        d["duration"] = self.duration
-        return d
+        return {
+            "id": self.id,
+            "start": self.start,
+            "end": self.end,
+            "text": self.text,
+            "confidence": self.confidence,
+            "type": self.type.value,
+            "priority": self.priority.value,
+            "reason": self.reason,
+            "rules_hit": list(self.rules_hit),
+            "llm_verified": self.llm_verified,
+            "llm_reason": self.llm_reason,
+            "manual_override": self.manual_override,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "AnalysisSegment":
+        return cls(
+            id=data["id"],
+            start=data["start"],
+            end=data["end"],
+            text=data.get("text", ""),
+            confidence=data.get("confidence", 1.0),
+            type=SegmentType(data.get("type", SegmentType.USABLE.value)),
+            priority=Priority(data.get("priority", Priority.LOW.value)),
+            reason=data.get("reason", ""),
+            rules_hit=list(data.get("rules_hit", [])),
+            llm_verified=data.get("llm_verified", False),
+            llm_reason=data.get("llm_reason", ""),
+            manual_override=data.get("manual_override"),
+        )
 
 
 @dataclass

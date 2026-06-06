@@ -5,7 +5,7 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
-from core.models import AnalysisResult, AnalysisSegment, Priority, SegmentType  # noqa: E402
+from core.models import AnalysisResult, AnalysisSegment  # noqa: E402
 from core.resolve import ResolveIntegration  # noqa: E402
 
 RESULT_FILE = os.path.join(SCRIPT_DIR, "results", "last_result.json")
@@ -41,22 +41,7 @@ if not timeline:
     print("[SmartAroll] Error: Please open a timeline first")
     sys.exit(1)
 
-segments = []
-for s in data.get("segments", []):
-    seg = AnalysisSegment(
-        id=s["id"],
-        start=s["start"],
-        end=s["end"],
-        text=s.get("text", ""),
-        confidence=s.get("confidence", 1.0),
-        type=SegmentType(s.get("type", "usable")),
-        priority=Priority(s.get("priority", "low")),
-        reason=s.get("reason", ""),
-        rules_hit=s.get("rules_hit", []),
-    )
-    if s.get("manual_override") is not None:
-        seg.manual_override = s["manual_override"]
-    segments.append(seg)
+segments = [AnalysisSegment.from_dict(s) for s in data.get("segments", [])]
 
 result = AnalysisResult(
     video_path=data.get("video_path", ""),

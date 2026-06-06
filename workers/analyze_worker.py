@@ -102,12 +102,12 @@ class AnalyzeWorker:
     def _notify(self, task_id: str, event: str, data: Any):
         """通知訂閱者"""
         with self._lock:
-            callbacks = self.subscribers.get(task_id, [])
+            callbacks = list(self.subscribers.get(task_id, []))
         for cb in callbacks:
             try:
                 cb(event, data)
             except Exception as e:
-                logger.error(f"訂閱 callback 失敗: {e}")
+                logger.error(f"訂閱 callback 失敗: {e}", exc_info=True)
 
     def _run_loop(self):
         """主迴圈"""

@@ -23,13 +23,6 @@ logger = logging.getLogger("smart_aroll.ffmpeg")
 IS_WINDOWS = sys.platform == "win32"
 
 
-def _quote_arg(arg: str) -> str:
-    """Windows 下的引號轉義"""
-    if IS_WINDOWS and " " in arg and not (arg.startswith('"') and arg.endswith('"')):
-        return f'"{arg}"'
-    return arg
-
-
 def _run(cmd: List[str], timeout: int = None, capture: bool = True) -> Tuple[int, str, str]:
     """執行指令,處理 cp950 編碼問題"""
     try:
@@ -293,15 +286,32 @@ class FFmpegRunner:
         return output_path
 
     def concat_segments(self, segment_files: List[str], output_path: str) -> str:
-        """拼接多段視訊 (使用 concat demuxer)"""
+        """拼接多段視訊 (使用 concat demuxer)
+
+        Security: ffmpeg's concat demuxer can read any path listed in the file
+        when -safe 0 is used. We avoid that by placing the list file in the same
+        directory as the segments and using relative paths, so ffmpeg's default
+        -safe 1 check (same dir as list file) accepts them. All paths are also
+        validated to exist as regular files before being written.
+        """
         if not segment_files:
             raise ValueError("沒有片段可拼接")
 
-        list_file = output_path + ".list.txt"
+        resolved = [os.path.abspath(p) for p in segment_files]
+        for p in resolved:
+            if not os.path.isfile(p):
+                raise FileNotFoundError(f"拼接片段不存在: {p}")
+        common_parent = os.path.commonpath(resolved)
+        if not os.path.isdir(common_parent):
+            raise ValueError(f"拼接片段必須位於同一目錄: {common_parent}")
+
+        list_file = os.path.join(common_parent, f".{os.path.basename(output_path)}.concat.txt")
         try:
             with open(list_file, "w", encoding="utf-8") as f:
-                for seg in segment_files:
-                    f.write(f"file '{seg.replace(chr(39), chr(39) + chr(92) + chr(39))}'\n")
+                for p in resolved:
+                    rel = os.path.relpath(p, common_parent).replace(chr(92), "/")
+                    rel = rel.replace(chr(39), chr(39) + chr(92) + chr(39))
+                    f.write(f"file '{rel}'\n")
 
             cmd = [
                 self.ffmpeg_path,
@@ -311,8 +321,6 @@ class FFmpegRunner:
                 "error",
                 "-f",
                 "concat",
-                "-safe",
-                "0",
                 "-i",
                 list_file,
                 "-c",
@@ -353,11 +361,12 @@ class FFmpegRunner:
 
     def burn_subtitles(self, video_path: str, srt_path: str, output_path: str, font: str = "Microsoft JhengHei") -> str:
         """燒錄字幕"""
-        srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
+        srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:").replace("'", "\\'")
+        font_escaped = font.replace("'", "\\'").replace(",", "\\,").replace(":", "\\:")
 
         video_filter = (
             f"subtitles='{srt_escaped}':"
-            f"force_style='FontName={font},FontSize=24,"
+            f"force_style='FontName={font_escaped},FontSize=24,"
             f"PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2'"
         )
 

@@ -438,7 +438,7 @@ class Analyzer:
                 logger.info("✓ 使用快取結果")
                 result.cache_hit = True
                 result.fps = cached.get("fps", result.fps)
-                result.segments = [AnalysisSegment(**s) for s in cached.get("segments", [])]
+                result.segments = [AnalysisSegment.from_dict(s) for s in cached.get("segments", [])]
                 result.used_duration = sum(s.duration for s in result.segments if s.is_kept)
                 result.cut_duration = sum(s.duration for s in result.segments if not s.is_kept)
                 if progress_callback:
