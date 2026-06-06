@@ -1,8 +1,6 @@
 """
 Basic smoke tests for Smart A-Roll core module.
 """
-import pytest
-
 import core
 import core.utils as utils
 

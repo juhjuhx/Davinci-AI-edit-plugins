@@ -1,11 +1,11 @@
-import os
 import json
 import logging
-from pathlib import Path
-from typing import List, Optional, Dict, Any
+import os
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from .models import AnalysisSegment, AnalysisResult, SegmentType
+from .models import AnalysisResult, SegmentType
 
 logger = logging.getLogger("smart_aroll.edl")
 
@@ -155,7 +155,11 @@ class TranscriptExporter:
         with open(output_path, "w", encoding="utf-8") as f:
             f.write(f"# Transcript - {os.path.basename(result.video_path)}\n")
             f.write(f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            f.write(f"# Duration: {result.total_duration:.1f}s | Kept: {result.used_duration:.1f}s | Cut: {result.cut_duration:.1f}s\n")
+            f.write(
+                f"# Duration: {result.total_duration:.1f}s | "
+                f"Kept: {result.used_duration:.1f}s | "
+                f"Cut: {result.cut_duration:.1f}s\n"
+            )
             f.write(f"# FPS: {result.fps:.2f}\n")
             f.write(f"# {'Kept only' if kept_only else 'All segments'}\n")
             f.write("=" * 60 + "\n\n")

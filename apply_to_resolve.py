@@ -1,9 +1,12 @@
-import sys
 import json
 import os
+import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
+
+from core.models import AnalysisResult, AnalysisSegment, Priority, SegmentType
+from core.resolve import ResolveIntegration
 
 RESULT_FILE = os.path.join(SCRIPT_DIR, "results", "last_result.json")
 
@@ -18,7 +21,7 @@ except Exception as e:
     sys.exit(1)
 
 try:
-    import DaVinciResolveScript as dvr
+    import DaVinciResolveScript as dvr  # noqa: N813
     resolve = dvr.scriptapp("Resolve")
     if not resolve:
         print("[SmartAroll] Error: Not connected to Resolve")
@@ -36,9 +39,6 @@ timeline = project.GetCurrentTimeline()
 if not timeline:
     print("[SmartAroll] Error: Please open a timeline first")
     sys.exit(1)
-
-from core.models import AnalysisResult, AnalysisSegment, SegmentType, Priority
-from core.resolve import ResolveIntegration
 
 segments = []
 for s in data.get("segments", []):

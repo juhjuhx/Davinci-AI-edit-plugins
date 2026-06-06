@@ -1,10 +1,10 @@
 """
 統一資料模型
 """
-from dataclasses import dataclass, field, asdict
-from typing import Optional, List, Tuple, Dict, Any
-from enum import Enum
 import time
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class SegmentType(str, Enum):

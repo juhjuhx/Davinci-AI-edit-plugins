@@ -3,11 +3,11 @@
 支援從 JSON 載入設定,提供型別安全的存取介面
 """
 import json
-import os
 import logging
+import os
+from dataclasses import dataclass, field
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("smart_aroll.config")
 

@@ -7,12 +7,10 @@
 - generate_placeholder: 生成對應長度的靜音音訊,用於填補被剪的位置
 - 預留: 之後可整合真正的 TTS 引擎
 """
-import os
 import logging
+import os
 import subprocess
-import math
-from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("smart_aroll.tts")
 

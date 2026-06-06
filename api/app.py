@@ -20,21 +20,17 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.utils import fix_dll_path, clean_path
-
-fix_dll_path()
-
 from flask import Flask, Response, jsonify, request
 
 from core.analyzer import Analyzer
 from core.config import get_config
 from core.edl import CSVExporter, EDLExporter, TranscriptExporter, export_all
-from core.enhance import enhance_audio_pipeline, normalize_loudness
 from core.ffmpeg_gpu import get_runner
 from core.llm import get_llm
-from core.models import AnalysisSegment, SegmentType
-from core.tts import generate_placeholder, patch_silence
+from core.utils import clean_path, fix_dll_path
 from workers.analyze_worker import get_worker
+
+fix_dll_path()
 
 config = get_config()
 

@@ -1,7 +1,7 @@
+import logging
 import os
 import shutil
-import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from .ffmpeg_gpu import get_runner
 

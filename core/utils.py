@@ -1,6 +1,6 @@
+import logging
 import os
 import sys
-import logging
 from types import ModuleType
 from typing import Any, Optional
 

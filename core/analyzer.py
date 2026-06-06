@@ -1,19 +1,22 @@
-import os
-import re
-import math
-import time
-import logging
 import hashlib
 import json
+import logging
+import math
+import os
+import re
+import time
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Callable
+from typing import Any, Callable, Dict, List, Optional
 
 from .config import Config
-from .models import (
-    AnalysisSegment, TranscriptionSegment, AnalysisResult,
-    SegmentType, Priority, VideoInfo
-)
 from .ffmpeg_gpu import get_runner
+from .models import (
+    AnalysisResult,
+    AnalysisSegment,
+    Priority,
+    SegmentType,
+    TranscriptionSegment,
+)
 from .utils import clean_path, lazy_import
 
 logger = logging.getLogger("smart_aroll.analyzer")
@@ -184,7 +187,7 @@ class WhisperTranscriber:
         if self._model is not None:
             return
 
-        WhisperModel = _whisper.get_attr("WhisperModel")
+        WhisperModel = _whisper.get_attr("WhisperModel")  # noqa: N806
         if WhisperModel is None:
             raise ImportError("faster-whisper 未安裝")
 

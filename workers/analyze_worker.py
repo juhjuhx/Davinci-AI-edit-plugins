@@ -4,24 +4,24 @@
 - SSE 推送進度給前端
 - 任務狀態查詢
 """
+import logging
 import os
+import queue
 import sys
+import threading
 import time
 import uuid
-import queue
-import logging
-import threading
-from typing import Optional, Dict, Any, Callable, List
 from dataclasses import asdict
+from typing import Any, Callable, Dict, List, Optional
 
 # 將父目錄加入路徑
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.config import get_config
-from core.models import QueueTask, AnalysisResult
 from core.analyzer import Analyzer
-from core.llm import get_llm
+from core.config import get_config
 from core.edl import export_all
+from core.llm import get_llm
+from core.models import AnalysisResult, QueueTask
 
 logger = logging.getLogger("smart_aroll.worker")
 

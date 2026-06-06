@@ -1,6 +1,6 @@
-import os
 import logging
-from typing import Optional, List, Dict, Any
+import os
+from typing import Any, Dict, List, Optional
 
 from .utils import fix_dll_path, lazy_import
 
@@ -42,7 +42,7 @@ class LLMAnalyzer:
         self._load_error = None
 
     def load(self) -> bool:
-        Llama = _llama.get_attr("Llama")
+        Llama = _llama.get_attr("Llama")  # noqa: N806
         if Llama is None:
             self._load_error = "llama-cpp-python not installed"
             return False

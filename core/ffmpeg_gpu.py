@@ -7,16 +7,13 @@
 - 視訊編碼 (NVENC 加速)
 - 音訊增強濾鏡鏈
 """
-import os
-import sys
 import json
-import subprocess
-import shutil
 import logging
-import re
-import time
-from pathlib import Path
-from typing import Optional, Dict, List, Tuple, Any
+import os
+import shutil
+import subprocess
+import sys
+from typing import Any, Dict, List, Optional, Tuple
 
 from .models import VideoInfo
 
@@ -317,7 +314,11 @@ class FFmpegRunner:
         """燒錄字幕"""
         srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
 
-        video_filter = f"subtitles='{srt_escaped}':force_style='FontName={font},FontSize=24,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2'"
+        video_filter = (
+            f"subtitles='{srt_escaped}':"
+            f"force_style='FontName={font},FontSize=24,"
+            f"PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,Outline=2'"
+        )
 
         encoder, extra_args = self.get_video_encoder()
         cmd = [

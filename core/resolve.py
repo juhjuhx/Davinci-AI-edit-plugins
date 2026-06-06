@@ -1,6 +1,6 @@
 import logging
-from typing import List, Dict, Any
-from .models import AnalysisResult, AnalysisSegment, SegmentType
+
+from .models import AnalysisResult, SegmentType
 
 logger = logging.getLogger("smart_aroll.resolve")
 
