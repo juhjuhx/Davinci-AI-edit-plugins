@@ -5,8 +5,8 @@ import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, SCRIPT_DIR)
 
-from core.models import AnalysisResult, AnalysisSegment, Priority, SegmentType
-from core.resolve import ResolveIntegration
+from core.models import AnalysisResult, AnalysisSegment, Priority, SegmentType  # noqa: E402
+from core.resolve import ResolveIntegration  # noqa: E402
 
 RESULT_FILE = os.path.join(SCRIPT_DIR, "results", "last_result.json")
 
