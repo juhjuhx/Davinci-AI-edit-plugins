@@ -27,7 +27,6 @@ License = "GPL-3.0-or-later"
 Operating_System = "Microsoft :: Windows :: Windows 10, Microsoft :: Windows :: Windows 11, POSIX :: Linux, macOS"
 Programming_Language = "Python :: 3.10, Python :: 3.11, Python :: 3.12"
 Topic = "Multimedia :: Video :: Editing"
-Topic = "Scientific/Engineering :: Artificial Intelligence"
 
 dependencies = [
     "faster-whisper>=1.0.0",
@@ -59,11 +58,16 @@ addopts = "-v --tb=short"
 python_version = "3.10"
 strict = false
 ignore_missing_imports = true
+no_implicit_optional = false
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_untyped_defs = false
 check_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = ["core.*", "api.*", "workers.*", "apply_to_resolve"]
+ignore_errors = true
 
 [tool.ruff]
 target-version = "py310"

@@ -1,7 +1,8 @@
 import os
 import sys
 import logging
-from typing import Optional, Any
+from types import ModuleType
+from typing import Any, Optional
 
 logger = logging.getLogger("smart_aroll.utils")
 
@@ -12,10 +13,10 @@ def clean_path(p: str) -> str:
     return p.strip()
 
 
-def fix_dll_path():
+def fix_dll_path() -> None:
     if sys.platform != "win32":
         return
-    dirs = []
+    dirs: list[str] = []
     for env_var in ("LLAMA_CPP_PATH", "FFMPEG_PATH"):
         p = os.environ.get(env_var, "")
         if p and os.path.isdir(p):
@@ -33,7 +34,7 @@ def fix_dll_path():
     for ver in ("v9.0", "v8.9", "v8.8"):
         dirs.append(rf"C:\Program Files\NVIDIA\CUDNN\{ver}\bin")
     dirs.append(r"C:\Windows\System32")
-    seen = set()
+    seen: set[str] = set()
     for d in dirs:
         if not d or not os.path.isdir(d):
             continue
@@ -49,13 +50,13 @@ def fix_dll_path():
 
 
 class LazyImport:
-    def __init__(self, import_path: str, name: str = None):
-        self._import_path = import_path
-        self._name = name or import_path.split(".")[-1]
-        self._module = None
-        self._error = None
+    def __init__(self, import_path: str, name: Optional[str] = None) -> None:
+        self._import_path: str = import_path
+        self._name: str = name or import_path.split(".")[-1]
+        self._module: Optional[ModuleType] = None
+        self._error: Optional[str] = None
 
-    def load(self) -> Optional[Any]:
+    def load(self) -> Optional[ModuleType]:
         if self._module is not None:
             return self._module
         try:
@@ -74,12 +75,12 @@ class LazyImport:
     def error(self) -> Optional[str]:
         return self._error
 
-    def get_attr(self, attr_name: str, default=None):
+    def get_attr(self, attr_name: str, default: Any = None) -> Any:
         mod = self.load()
         if mod is None:
             return default
         return getattr(mod, attr_name, default)
 
 
-def lazy_import(import_path: str, name: str = None) -> LazyImport:
+def lazy_import(import_path: str, name: Optional[str] = None) -> LazyImport:
     return LazyImport(import_path, name)
