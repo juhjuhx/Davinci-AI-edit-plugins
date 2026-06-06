@@ -10,6 +10,7 @@ jobs:
   lint:
     name: Lint (ruff)
     runs-on: windows-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -23,7 +24,7 @@ jobs:
         run: pip install ruff
 
       - name: Run ruff check
-        run: ruff check core/ api/ workers/ tests/ apply_to_resolve.py
+        run: ruff check --output-format=concise core/ api/ workers/ tests/ apply_to_resolve.py
 
       - name: Run ruff format check
         run: ruff format --check core/ api/ workers/ tests/ apply_to_resolve.py

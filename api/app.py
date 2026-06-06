@@ -5,41 +5,39 @@ Flask 主程式
 - SSE 進度推送
 - 統一日誌
 """
-import os
-import sys
-import json
-import time
-import shutil
-import webbrowser
-import logging
-import threading
 import argparse
 import base64
+import json
+import logging
+import os
+import shutil
 import subprocess
-from pathlib import Path
+import sys
+import time
 from datetime import datetime
-from typing import Optional, Dict, Any
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from core.utils import fix_dll_path, clean_path
+
 fix_dll_path()
 
-from flask import Flask, request, jsonify, Response
+from flask import Flask, Response, jsonify, request
 
-from core.config import get_config, Config
-from core.models import AnalysisSegment, SegmentType
-from core.ffmpeg_gpu import get_runner
-from core.edl import export_all, EDLExporter, CSVExporter, TranscriptExporter
 from core.analyzer import Analyzer
-from core.llm import get_llm, reset_llm
-from core.tts import generate_placeholder, patch_silence
+from core.config import get_config
+from core.edl import CSVExporter, EDLExporter, TranscriptExporter, export_all
 from core.enhance import enhance_audio_pipeline, normalize_loudness
+from core.ffmpeg_gpu import get_runner
+from core.llm import get_llm
+from core.models import AnalysisSegment, SegmentType
+from core.tts import generate_placeholder, patch_silence
 from workers.analyze_worker import get_worker
 
 config = get_config()
 
-from logging.handlers import RotatingFileHandler
 log_dir = config.export.get("log_dir", "logs")
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, "smart_aroll.log")
