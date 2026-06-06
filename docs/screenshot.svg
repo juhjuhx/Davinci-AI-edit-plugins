@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" font-family="-apple-system, Segoe UI, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#111"/>
+    </linearGradient>
+    <linearGradient id="bar-green" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#28c840"/>
+      <stop offset="100%" stop-color="#1a8a2a"/>
+    </linearGradient>
+    <linearGradient id="bar-red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff5f57"/>
+      <stop offset="100%" stop-color="#cc3028"/>
+    </linearGradient>
+    <linearGradient id="bar-orange" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#febc2e"/>
+      <stop offset="100%" stop-color="#da8c00"/>
+    </linearGradient>
+    <linearGradient id="bar-blue" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5b8def"/>
+      <stop offset="100%" stop-color="#2d5be3"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="720" fill="url(#bg)"/>
+
+  <!-- Title bar -->
+  <rect x="20" y="15" width="1160" height="50" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <circle cx="40" cy="40" r="6" fill="#ff5f57"/>
+  <circle cx="58" cy="40" r="6" fill="#febc2e"/>
+  <circle cx="76" cy="40" r="6" fill="#28c840"/>
+  <text x="100" y="45" fill="#999" font-size="14" font-weight="500">Smart A-Roll v4.0</text>
+  <text x="1120" y="45" fill="#666" font-size="12">http://127.0.0.1:8888</text>
+
+  <!-- Top row: video selection + settings -->
+  <rect x="20" y="80" width="1160" height="60" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <rect x="30" y="95" width="200" height="30" rx="4" fill="#111" stroke="#333"/>
+  <text x="40" y="114" fill="#888" font-size="12">C:\videos\talk_ep5.mp4</text>
+  <rect x="240" y="95" width="80" height="30" rx="4" fill="#2a2a2a" stroke="#444"/>
+  <text x="255" y="114" fill="#ccc" font-size="12">Browse</text>
+  <rect x="1000" y="95" width="170" height="30" rx="4" fill="#1a1a2e" stroke="#333"/>
+  <text x="1010" y="114" fill="#888" font-size="11">Settings</text>
+
+  <!-- Progress stages -->
+  <g transform="translate(30, 155)">
+    <rect x="0" y="0" width="36" height="36" rx="18" fill="#1a3a1a" stroke="#28c840" stroke-width="2"/>
+    <text x="18" y="23" fill="#28c840" font-size="16" text-anchor="middle">✓</text>
+    <text x="18" y="52" fill="#28c840" font-size="9" text-anchor="middle">VIDEO</text>
+
+    <line x1="50" y1="18" x2="80" y2="18" stroke="#28c840" stroke-width="2"/>
+    <rect x="90" y="0" width="36" height="36" rx="18" fill="#1a3a1a" stroke="#28c840" stroke-width="2"/>
+    <text x="108" y="23" fill="#28c840" font-size="16" text-anchor="middle">✓</text>
+    <text x="108" y="52" fill="#28c840" font-size="9" text-anchor="middle">AUDIO</text>
+
+    <line x1="140" y1="18" x2="170" y2="18" stroke="#28c840" stroke-width="2"/>
+    <rect x="180" y="0" width="36" height="36" rx="18" fill="#1a3a1a" stroke="#28c840" stroke-width="2"/>
+    <text x="198" y="23" fill="#28c840" font-size="16" text-anchor="middle">✓</text>
+    <text x="198" y="52" fill="#28c840" font-size="9" text-anchor="middle">WHISPER</text>
+
+    <line x1="230" y1="18" x2="260" y2="18" stroke="#28c840" stroke-width="2"/>
+    <rect x="270" y="0" width="36" height="36" rx="18" fill="#1a3a1a" stroke="#28c840" stroke-width="2"/>
+    <text x="288" y="23" fill="#28c840" font-size="16" text-anchor="middle">✓</text>
+    <text x="288" y="52" fill="#28c840" font-size="9" text-anchor="middle">RULES</text>
+
+    <line x1="320" y1="18" x2="350" y2="18" stroke="#333" stroke-width="2"/>
+    <rect x="360" y="0" width="36" height="36" rx="18" fill="#1a1a3a" stroke="#2d5be3" stroke-width="2"/>
+    <text x="378" y="23" fill="#2d5be3" font-size="16" text-anchor="middle">⟳</text>
+    <text x="378" y="52" fill="#2d5be3" font-size="9" text-anchor="middle">LLM</text>
+  </g>
+
+  <!-- Progress bar -->
+  <rect x="30" y="220" width="1140" height="6" rx="3" fill="#222"/>
+  <rect x="30" y="220" width="855" height="6" rx="3" fill="url(#bar-blue)"/>
+  <text x="30" y="245" fill="#666" font-size="11">LLM 確認中 3/12</text>
+
+  <!-- Stats row -->
+  <g transform="translate(20, 265)">
+    <rect x="0" y="0" width="280" height="60" rx="6" fill="#151515" stroke="#333"/>
+    <text x="140" y="28" fill="#5b8def" font-size="28" font-weight="bold" text-anchor="middle">47</text>
+    <text x="140" y="48" fill="#666" font-size="10" text-anchor="middle" letter-spacing="1">TOTAL SEGMENTS</text>
+
+    <rect x="295" y="0" width="280" height="60" rx="6" fill="#151515" stroke="#333"/>
+    <text x="435" y="28" fill="#28c840" font-size="28" font-weight="bold" text-anchor="middle">32</text>
+    <text x="435" y="48" fill="#666" font-size="10" text-anchor="middle" letter-spacing="1">KEPT</text>
+
+    <rect x="590" y="0" width="280" height="60" rx="6" fill="#151515" stroke="#333"/>
+    <text x="730" y="28" fill="#ff5f57" font-size="28" font-weight="bold" text-anchor="middle">15</text>
+    <text x="730" y="48" fill="#666" font-size="10" text-anchor="middle" letter-spacing="1">CUT</text>
+
+    <rect x="885" y="0" width="280" height="60" rx="6" fill="#151515" stroke="#333"/>
+    <text x="1025" y="28" fill="#febc2e" font-size="28" font-weight="bold" text-anchor="middle">12:34</text>
+    <text x="1025" y="48" fill="#666" font-size="10" text-anchor="middle" letter-spacing="1">OUTPUT DURATION</text>
+  </g>
+
+  <!-- Timeline area -->
+  <rect x="20" y="345" width="1160" height="120" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="30" y="365" fill="#666" font-size="11" letter-spacing="1.5" font-weight="600">TIMELINE</text>
+
+  <!-- Waveform bars -->
+  <g transform="translate(30, 380)">
+    <!-- Simulated waveform segments -->
+    <rect x="0" y="0" width="40" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="45" y="5" width="80" height="50" rx="2" fill="url(#bar-red)"/>
+    <rect x="130" y="0" width="35" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="170" y="8" width="20" height="44" rx="2" fill="url(#bar-orange)"/>
+    <rect x="195" y="0" width="60" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="260" y="2" width="45" height="56" rx="2" fill="url(#bar-blue)"/>
+    <rect x="310" y="0" width="50" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="365" y="10" width="30" height="40" rx="2" fill="url(#bar-red)"/>
+    <rect x="400" y="0" width="70" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="475" y="3" width="25" height="54" rx="2" fill="url(#bar-orange)"/>
+    <rect x="505" y="0" width="55" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="565" y="5" width="90" height="50" rx="2" fill="url(#bar-red)"/>
+    <rect x="660" y="0" width="40" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="705" y="8" width="15" height="44" rx="2" fill="url(#bar-orange)"/>
+    <rect x="725" y="0" width="60" height="60" rx="2" fill="url(#bar-green)"/>
+    <rect x="790" y="2" width="35" height="56" rx="2" fill="url(#bar-blue)"/>
+    <rect x="830" y="0" width="45" height="60" rx="2" fill="url(#bar-green)"/>
+  </g>
+
+  <!-- Time ruler -->
+  <g transform="translate(30, 445)">
+    <text x="0" y="10" fill="#555" font-size="9">00:00</text>
+    <text x="200" y="10" fill="#555" font-size="9">02:00</text>
+    <text x="400" y="10" fill="#555" font-size="9">04:00</text>
+    <text x="600" y="10" fill="#555" font-size="9">06:00</text>
+    <text x="800" y="10" fill="#555" font-size="9">08:00</text>
+    <text x="1000" y="10" fill="#555" font-size="9">10:00</text>
+  </g>
+
+  <!-- Preview panel -->
+  <rect x="20" y="480" width="400" height="225" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="30" y="500" fill="#666" font-size="11" letter-spacing="1.5" font-weight="600">PREVIEW</text>
+  <rect x="30" y="510" width="380" height="185" rx="4" fill="#0a0a0a"/>
+  <text x="220" y="605" fill="#444" font-size="12" text-anchor="middle">Frame preview</text>
+
+  <!-- Export panel -->
+  <rect x="435" y="480" width="745" height="225" rx="8" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="445" y="500" fill="#666" font-size="11" letter-spacing="1.5" font-weight="600">EXPORT</text>
+
+  <rect x="445" y="515" width="350" height="35" rx="4" fill="#111" stroke="#333"/>
+  <text x="455" y="537" fill="#888" font-size="12">Quality: Stream Copy (lossless)</text>
+
+  <rect x="445" y="560" width="350" height="35" rx="4" fill="#111" stroke="#333"/>
+  <text x="455" y="582" fill="#888" font-size="12">Audio: Enhance (loudnorm)</text>
+
+  <rect x="445" y="605" width="350" height="35" rx="4" fill="#1a3a1a" stroke="#28c840"/>
+  <text x="455" y="627" fill="#28c840" font-size="12">H265 10bit 422 (NVENC)</text>
+
+  <rect x="810" y="650" width="180" height="40" rx="6" fill="#2d5be3"/>
+  <text x="900" y="676" fill="#fff" font-size="14" font-weight="600" text-anchor="middle">Export Video</text>
+
+  <!-- Segment list -->
+  <rect x="810" y="515" width="360" height="125" rx="6" fill="#111" stroke="#333"/>
+  <rect x="818" y="521" width="344" height="24" rx="3" fill="none"/>
+  <circle cx="828" cy="533" r="6" fill="#28c840"/>
+  <text x="840" y="537" fill="#ccc" font-size="11">00:00:00 - 00:00:45</text>
+  <text x="1120" y="537" fill="#999" font-size="10" text-anchor="end">Intro</text>
+
+  <rect x="818" y="548" width="344" height="24" rx="3" fill="none"/>
+  <circle cx="828" cy="560" r="6" fill="#ff5f57"/>
+  <text x="840" y="564" fill="#ccc" font-size="11">00:00:45 - 00:01:30</text>
+  <text x="1120" y="564" fill="#ff5f57" font-size="10" text-anchor="end">Filler</text>
+
+  <rect x="818" y="575" width="344" height="24" rx="3" fill="none"/>
+  <circle cx="828" cy="587" r="6" fill="#28c840"/>
+  <text x="840" y="591" fill="#ccc" font-size="11">00:01:30 - 00:02:15</text>
+  <text x="1120" y="591" fill="#999" font-size="10" text-anchor="end">Main point</text>
+
+  <rect x="818" y="602" width="344" height="24" rx="3" fill="none"/>
+  <circle cx="828" cy="614" r="6" fill="#febc2e"/>
+  <text x="840" y="618" fill="#ccc" font-size="11">00:02:15 - 00:02:18</text>
+  <text x="1120" y="618" fill="#febc2e" font-size="10" text-anchor="end">Repeat</text>
+
+  <!-- Legend -->
+  <g transform="translate(30, 655)">
+    <rect x="0" y="0" width="10" height="10" rx="2" fill="#28c840"/>
+    <text x="14" y="9" fill="#888" font-size="10">Keep</text>
+    <rect x="60" y="0" width="10" height="10" rx="2" fill="#ff5f57"/>
+    <text x="74" y="9" fill="#888" font-size="10">Cut</text>
+    <rect x="120" y="0" width="10" height="10" rx="2" fill="#febc2e"/>
+    <text x="134" y="9" fill="#888" font-size="10">Filler</text>
+    <rect x="180" y="0" width="10" height="10" rx="2" fill="#5b8def"/>
+    <text x="194" y="9" fill="#888" font-size="10">Silence</text>
+    <rect x="260" y="0" width="10" height="10" rx="2" fill="#ff8c00"/>
+    <text x="274" y="9" fill="#888" font-size="10">Correction</text>
+  </g>
+</svg>

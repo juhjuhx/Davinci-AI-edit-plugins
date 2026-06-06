@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart A-Roll v4.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#111;color:#ccc;font-family:-apple-system,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:12px 20px 40px}
+
+.titlebar{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dots{display:flex;gap:6px}
+.dot{width:12px;height:12px;border-radius:50%}
+.dot.red{background:#ff5f57}
+.dot.yellow{background:#febc2e}
+.dot.green{background:#28c840}
+.titlebar span{font-size:13px;color:#999;font-weight:500}
+
+.panel{background:#1e1e1e;border:1px solid #333;border-radius:8px;padding:18px 20px;margin-bottom:0}
+
+.layout-row{display:grid;gap:10px;margin-bottom:10px;position:relative}
+.layout-row[data-cols="1fr 1fr"]{grid-template-columns:1fr 1fr}
+.layout-row[data-cols="3fr 1fr"]{grid-template-columns:3fr 1fr}
+.layout-row[data-cols="1fr"]{grid-template-columns:1fr}
+.layout-row.stack-mode{grid-template-columns:1fr!important}
+@media(max-width:800px){.layout-row{grid-template-columns:1fr!important}}
+
+.drag-handle{position:absolute;top:10px;right:14px;cursor:grab;font-size:18px;user-select:none;z-index:5;opacity:.4;transition:opacity .2s}
+.drag-handle:hover{opacity:1}
+.layout-row:not(.draggable) .drag-handle{display:none}
+.layout-row.draggable .drag-handle{display:block}
+.layout-row.dragging{opacity:.4}
+.layout-row.drag-over{box-shadow:0 -2px 0 0 #2d5be3}
+
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:#666;margin-bottom:12px;font-weight:600}
+
+.form-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.form-row label{min-width:80px;font-size:12px;color:#888;text-align:right}
+.form-row input[type="text"],.form-row select{flex:1;background:#111;border:1px solid #333;color:#ddd;padding:7px 10px;border-radius:4px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s}
+.form-row input[type="text"]:focus,.form-row select:focus{border-color:#2d5be3}
+.form-row select{cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+
+.btn{border:none;padding:7px 16px;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn-secondary{background:#2a2a2a;color:#ccc;border:1px solid #444}
+.btn-secondary:hover{background:#333}
+.btn-primary{background:linear-gradient(135deg,#2d5be3,#1a3fa0);color:#fff;border:1px solid #3a6af0}
+.btn-primary:hover{background:linear-gradient(135deg,#3a6af0,#2d5be3);box-shadow:0 2px 12px rgba(45,91,227,.3)}
+.btn-start{width:100%;padding:12px;font-size:15px;margin-top:6px;letter-spacing:.5px}
+
+.slider-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.slider-row label{min-width:90px;font-size:12px;color:#888;text-align:right}
+.slider-row input[type="range"]{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:#333;border-radius:2px;outline:none}
+.slider-row input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;background:#2d5be3;border-radius:50%;cursor:pointer;border:2px solid #1a3fa0}
+.slider-row .val{min-width:40px;font-size:13px;color:#2d5be3;font-family:'SF Mono',Consolas,'Courier New',monospace;font-weight:600;text-align:center}
+
+.stages{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:2px}
+.stage-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;opacity:.35;transition:opacity .3s,transform .3s;position:relative}
+.stage-item.active{opacity:1}
+.stage-item.active .stage-icon{transform:scale(1.15);box-shadow:0 0 12px rgba(45,91,227,.4)}
+.stage-item.done{opacity:.7}
+.stage-item.done .stage-icon{background:#1a3a1a;border-color:#28c840;color:#28c840}
+.stage-icon{width:36px;height:36px;border-radius:50%;background:#1a1a2e;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .3s}
+.stage-item.active .stage-icon{border-color:#2d5be3;background:#1a1a3a;color:#2d5be3}
+.stage-label{font-size:9px;color:#666;text-align:center;white-space:nowrap}
+.stage-item.active .stage-label{color:#2d5be3;font-weight:600}
+.stage-item.done .stage-label{color:#28c840}
+.stage-arrow{color:#333;font-size:10px;flex-shrink:0;margin-bottom:16px}
+
+.progress-wrap{margin-bottom:6px}
+.progress-bar{height:6px;background:#222;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,#2d5be3,#5b8def);border-radius:3px;transition:width .4s ease;position:relative}
+.progress-fill.active{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.status-text{font-size:11px;color:#666;margin-top:6px;min-height:16px}
+
+.stats-row{display:flex;gap:12px;margin-bottom:16px}
+.stat-card{flex:1;background:#151515;border:1px solid #333;border-radius:6px;padding:14px;text-align:center}
+.stat-card .num{font-size:28px;font-weight:700;line-height:1}
+.stat-card .lbl{font-size:10px;color:#666;margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.stat-card.blue .num{color:#5b8def}
+.stat-card.green .num{color:#28c840}
+.stat-card.red .num{color:#ff5f57}
+
+.export-row{display:flex;gap:8px;flex-wrap:wrap}
+
+.segments-box{max-height:300px;overflow-y:auto;background:#111;border:1px solid #333;border-radius:6px;padding:8px;margin-bottom:10px}
+.segments-box::-webkit-scrollbar{width:6px}
+.segments-box::-webkit-scrollbar-track{background:#1a1a1a}
+.segments-box::-webkit-scrollbar-thumb{background:#444;border-radius:3px}
+
+.seg-item{display:flex;align-items:center;gap:8px;padding:7px 8px;border-bottom:1px solid #1e1e1e;transition:background .15s}
+.seg-item:last-child{border-bottom:none}
+.seg-item:hover{background:#1a1a1a}
+.seg-item input[type="checkbox"]{-webkit-appearance:none;appearance:none;width:16px;height:16px;border:2px solid #444;border-radius:3px;cursor:pointer;flex-shrink:0;position:relative;transition:all .15s}
+.seg-item input[type="checkbox"]:checked{background:#28c840;border-color:#28c840}
+.seg-item input[type="checkbox"]:checked::after{content:'';position:absolute;left:3px;top:0px;width:6px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.seg-tc{font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:11px;color:#888;min-width:110px;flex-shrink:0}
+.seg-text{flex:1;font-size:12px;color:#bbb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg-badge{font-size:9px;padding:2px 7px;border-radius:3px;font-weight:600;text-transform:uppercase;flex-shrink:0;letter-spacing:.5px}
+.badge-usable{background:#1a3a1a;color:#28c840;border:1px solid #28c84040}
+.badge-cut{background:#3a1a1a;color:#ff5f57;border:1px solid #ff5f5740}
+.badge-filler{background:#3a2a1a;color:#ff9f43;border:1px solid #ff9f4340}
+.badge-repeat{background:#3a3a1a;color:#febc2e;border:1px solid #febc2e40}
+.badge-hesitation{background:#3a3a1a;color:#febc2e;border:1px solid #febc2e40}
+.badge-uncertain{background:#2a1a3a;color:#a855f7;border:1px solid #a855f740}
+
+.seg-actions{display:flex;gap:8px}
+
+.log-box{background:#0a0a0a;border:1px solid #222;border-radius:6px;padding:10px;max-height:180px;overflow-y:auto;font-family:'SF Mono',Consolas,'Courier New',monospace;font-size:11px;line-height:1.6}
+.log-box::-webkit-scrollbar{width:6px}
+.log-box::-webkit-scrollbar-track{background:#0a0a0a}
+.log-box::-webkit-scrollbar-thumb{background:#333;border-radius:3px}
+.log-line{color:#666}
+.log-line .ts{color:#444;margin-right:6px}
+.log-line.info{color:#888}
+.log-line.success{color:#28c840}
+.log-line.error{color:#ff5f57}
+.log-line.warn{color:#febc2e}
+
+.hidden{display:none!important}
+
+.timeline-container{position:relative;height:100px;background:#0a0a0a;border-radius:6px;overflow:hidden;border:1px solid #333;cursor:default}
+.timeline-container.razor-mode{cursor:crosshair}
+.waveform-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.timeline-overlay{position:absolute;top:0;left:0;width:100%;height:100%;display:flex}
+.timeline-seg{height:100%;pointer-events:auto;cursor:pointer;transition:filter .15s;border-right:1px solid rgba(0,0,0,.3)}
+.timeline-seg.usable{background:rgba(40,200,64,.15)}
+.timeline-seg.cut{background:rgba(255,95,87,.25)}
+.timeline-seg:hover{filter:brightness(1.5)}
+.tc-mark{position:absolute;bottom:2px;font-size:9px;color:rgba(255,255,255,.25);transform:translateX(-50%);pointer-events:none;font-family:'SF Mono',Consolas,monospace}
+.cursor-line{position:absolute;top:0;width:2px;height:100%;background:#5b8def;pointer-events:none;z-index:10;box-shadow:0 0 8px rgba(91,141,239,.6)}
+.razor-line{position:absolute;top:0;width:2px;height:100%;background:#ff5f57;pointer-events:none;z-index:10;display:none;box-shadow:0 0 6px rgba(255,95,87,.5)}
+.timeline-container.razor-mode:hover .razor-line{display:block}
+
+.toolbar{display:inline-flex;gap:4px;float:right}
+.btn-tool{background:#222;color:#888;border:1px solid #444;padding:3px 10px;font-size:11px;border-radius:3px;cursor:pointer}
+.btn-tool.active{background:#2d5be3;color:#fff;border-color:#3a6af0}
+.zoom-controls{display:flex;align-items:center;gap:8px;margin-top:6px}
+.zoom-slider{flex:1;-webkit-appearance:none;appearance:none;height:4px;background:#333;border-radius:2px;outline:none}
+.zoom-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;background:#2d5be3;border-radius:50%;cursor:pointer}
+.zoom-label{font-size:11px;color:#666;min-width:30px}
+.quality-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.quality-option{background:#151515;border:1px solid #333;border-radius:6px;padding:10px 14px;cursor:pointer;transition:all .15s;flex:1;min-width:120px}
+.quality-option:hover{border-color:#555}
+.quality-option.active{border-color:#2d5be3;background:#1a1a3a}
+.quality-option .q-name{font-size:12px;color:#ddd;font-weight:600}
+.quality-option .q-desc{font-size:10px;color:#666;margin-top:2px}
+.shortcuts-hint{font-size:10px;color:#555;margin-top:8px;display:flex;gap:12px;flex-wrap:wrap}
+.shortcuts-hint kbd{background:#222;border:1px solid #444;border-radius:3px;padding:1px 5px;font-size:10px;color:#888;font-family:'SF Mono',Consolas,monospace}
+
+.preview-wrap{background:#000;border:1px solid #333;border-radius:4px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:80px}
+.preview-canvas{display:block;max-width:100%;max-height:200px;background:#000}
+.preview-time{font-size:11px;color:#5b8def;font-family:'SF Mono',Consolas,monospace;text-align:center;margin-top:4px;font-weight:600}
+
+@media(max-width:600px){
+.form-row{flex-wrap:wrap}
+.form-row label{min-width:100%;text-align:left;margin-bottom:2px}
+.stats-row{flex-direction:column}
+.stages{flex-wrap:wrap;gap:4px}
+.stage-arrow{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<div class="titlebar">
+<div class="dots"><div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div></div>
+<span>Smart A-Roll v4.0</span>
+<button class="btn btn-tool" id="btnPin" onclick="toggleLayout()" style="margin-left:auto;font-size:16px;padding:4px 8px" title="切換佈局">📌</button>
+</div>
+
+<div class="layout-row" data-cols="1fr 1fr" data-row-id="input-params">
+<div class="panel" id="sec-input">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">檔案輸入</div>
+<div class="form-row">
+<label>影片路徑</label>
+<input type="text" id="videoPath" placeholder="/path/to/video.mp4">
+<button class="btn btn-secondary" onclick="browseFile()">選擇</button>
+</div>
+<div class="form-row">
+<label>Whisper 模型</label>
+<select id="whisperModel">
+<option value="tiny">tiny</option>
+<option value="base" selected>base</option>
+<option value="small">small</option>
+<option value="medium">medium</option>
+<option value="large-v3">large-v3</option>
+</select>
+</div>
+<div class="form-row">
+<label>語言</label>
+<select id="language">
+<option value="zh" selected>zh — 中文</option>
+<option value="en">en — English</option>
+<option value="ja">ja — 日本語</option>
+<option value="ko">ko — 한국어</option>
+</select>
+</div>
+<div class="form-row" style="margin-top:14px">
+<button class="btn btn-primary btn-start" onclick="addToQueue()">▶ 開始分析</button>
+</div>
+</div>
+<div class="panel" id="sec-params">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">參數調整</div>
+<div class="slider-row">
+<label>信心度閾值</label>
+<input type="range" id="confidence" min="0.1" max="0.9" step="0.05" value="0.2" oninput="document.getElementById('confVal').textContent=this.value">
+<span class="val" id="confVal">0.20</span>
+</div>
+<div class="slider-row">
+<label>停頓閾值</label>
+<input type="range" id="pauseThreshold" min="0.5" max="5.0" step="0.1" value="2.0" oninput="document.getElementById('pauseVal').textContent=parseFloat(this.value).toFixed(1)">
+<span class="val" id="pauseVal">2.0</span>
+</div>
+</div>
+</div>
+
+<div class="layout-row" data-cols="1fr" data-row-id="progress">
+<div class="panel" id="sec-progress">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">處理進度</div>
+<div class="stages" id="stages">
+<div class="stage-item" data-stage="0"><div class="stage-icon">🎵</div><div class="stage-label">音訊提取</div></div>
+<div class="stage-arrow">▶</div>
+<div class="stage-item" data-stage="1"><div class="stage-icon">📝</div><div class="stage-label">語音轉錄</div></div>
+<div class="stage-arrow">▶</div>
+<div class="stage-item" data-stage="2"><div class="stage-icon">🔍</div><div class="stage-label">信心過濾</div></div>
+<div class="stage-arrow">▶</div>
+<div class="stage-item" data-stage="3"><div class="stage-icon">⚙️</div><div class="stage-label">規則引擎</div></div>
+<div class="stage-arrow">▶</div>
+<div class="stage-item" data-stage="4"><div class="stage-icon">🤖</div><div class="stage-label">LLM 分析</div></div>
+</div>
+<div class="progress-wrap">
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+</div>
+<div class="status-text" id="statusText">就緒</div>
+</div>
+</div>
+
+<div class="layout-row" data-cols="1fr 1fr" data-row-id="results-export">
+<div class="panel hidden" id="sec-results">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">分析結果</div>
+<div class="stats-row">
+<div class="stat-card blue"><div class="num" id="statTotal">0</div><div class="lbl">總片段</div></div>
+<div class="stat-card green"><div class="num" id="statUsable">0</div><div class="lbl">可用</div></div>
+<div class="stat-card red"><div class="num" id="statCut">0</div><div class="lbl">需剪輯</div></div>
+</div>
+<div class="export-row" id="exportRow">
+<button class="btn btn-secondary" onclick="exportResult('edl')">匯出 EDL</button>
+<button class="btn btn-secondary" onclick="exportResult('csv')">匯出 CSV</button>
+<button class="btn btn-secondary" onclick="exportResult('srt')">匯出 SRT</button>
+<button class="btn btn-secondary" onclick="exportResult('json')">匯出 JSON</button>
+<button class="btn btn-primary" onclick="exportResult('all')">一鍵匯出</button>
+</div>
+</div>
+<div class="panel hidden" id="sec-export">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">匯出影片</div>
+<div class="quality-row">
+<div class="quality-option active" data-quality="copy" onclick="selectQuality(this)"><div class="q-name">📋 原始複製</div><div class="q-desc">零畫質損失，速度最快</div></div>
+<div class="quality-option" data-quality="h265_10bit_422" onclick="selectQuality(this)"><div class="q-name">🎬 H265 10bit 422</div><div class="q-desc">最高畫質，適合後製</div></div>
+<div class="quality-option" data-quality="h264" onclick="selectQuality(this)"><div class="q-name">📹 H264</div><div class="q-desc">通用格式，相容性最好</div></div>
+</div>
+<label style="font-size:12px;color:#888;display:flex;align-items:center;gap:6px;margin-bottom:10px"><input type="checkbox" id="enhanceAudio"> 音訊增強 (loudnorm)</label>
+<button class="btn btn-primary btn-start" onclick="autoEdit()">🎬 匯出剪輯影片</button>
+<div id="editProgress" class="hidden" style="margin-top:10px"><div class="progress-bar"><div class="progress-fill" id="editFill"></div></div><div class="status-text" id="editStatus"></div></div>
+</div>
+</div>
+
+<div class="layout-row" data-cols="3fr 1fr" data-row-id="timeline">
+<div class="panel hidden" id="sec-timeline">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">時間軸<div class="toolbar"><button class="btn btn-tool active" id="btnSelect" onclick="setTool('select')">🖱 選取</button><button class="btn btn-tool" id="btnRazor" onclick="setTool('razor')">🔪 剃刀</button></div></div>
+<div class="timeline-container" id="timelineBar">
+<canvas class="waveform-canvas" id="waveformCanvas"></canvas>
+<div class="timeline-overlay" id="timelineOverlay"></div>
+<div class="cursor-line" id="cursorLine" style="left:0%"></div>
+<div class="razor-line" id="razorLine"></div>
+</div>
+<div class="zoom-controls"><span class="zoom-label">縮放</span><input type="range" class="zoom-slider" id="zoomSlider" min="1" max="20" value="1" oninput="setZoom(parseInt(this.value))"><span class="zoom-label" id="zoomVal">1x</span></div>
+<div class="shortcuts-hint"><span><kbd>Q</kbd> 剪切游標前</span><span><kbd>W</kbd> 剪切游標後</span><span><kbd>B</kbd> 切換剃刀</span><span><kbd>Alt</kbd>+<kbd>=</kbd>/<kbd>-</kbd> 縮放</span></div>
+</div>
+<div class="panel hidden" id="sec-preview">
+<div class="section-title">即時預覽</div>
+<div class="preview-wrap" id="previewWrap">
+<canvas class="preview-canvas" id="previewCanvas"></canvas>
+</div>
+<div class="preview-time" id="previewTime">--:--.--</div>
+</div>
+</div>
+
+<div class="layout-row" data-cols="1fr 1fr" data-row-id="editor-log">
+<div class="panel hidden" id="sec-editor">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">片段編輯器</div>
+<div class="segments-box" id="segmentsBox"></div>
+<div class="seg-actions">
+<button class="btn btn-secondary" onclick="selectAll(true)">全選可用</button>
+<button class="btn btn-secondary" onclick="selectAll(false)">全選不可用</button>
+<button class="btn btn-primary" onclick="applyChanges()">套用變更</button>
+</div>
+</div>
+<div class="panel" id="sec-log">
+<div class="drag-handle" draggable="true">📌</div>
+<div class="section-title">日誌</div>
+<div class="log-box" id="logBox"></div>
+</div>
+</div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8888';
+let currentTaskId = null;
+let currentSegments = [];
+
+const STAGE_MAP = {
+'audio_extract': 0,
+'transcribe': 1,
+'confidence_filter': 2,
+'rule_engine': 3,
+'llm_analysis': 4
+};
+
+let currentTool='select';
+let cursorTime=0;
+let zoomLevel=1;
+let totalDuration=0;
+let currentFps=30;
+let currentEnergyData=[];
+let isPinned=true;
+let currentVideoPath='';
+let previewTimer=null;
+
+var SEGMENT_COLORS={
+usable:{h:120,s:60},cut:{h:0,s:60},filler:{h:25,s:70},
+repeat:{h:45,s:70},hesitation:{h:45,s:70},correction:{h:30,s:60},
+uncertain:{h:270,s:50},silence:{h:0,s:0}
+};
+
+function formatTime(seconds) {
+if (seconds == null || isNaN(seconds)) return '00:00.0';
+const m = Math.floor(seconds / 60);
+const s = seconds % 60;
+return String(m).padStart(2, '0') + ':' + s.toFixed(1).padStart(4, '0');
+}
+
+function log(msg, type) {
+type = type || 'info';
+const box = document.getElementById('logBox');
+const now = new Date();
+const ts = String(now.getHours()).padStart(2, '0') + ':' +
+String(now.getMinutes()).padStart(2, '0') + ':' +
+String(now.getSeconds()).padStart(2, '0');
+const div = document.createElement('div');
+div.className = 'log-line ' + type;
+div.innerHTML = '<span class="ts">[' + ts + ']</span>' + escapeHtml(msg);
+box.appendChild(div);
+box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(str) {
+const d = document.createElement('div');
+d.textContent = str;
+return d.innerHTML;
+}
+
+function setStage(idx) {
+document.querySelectorAll('.stage-item').forEach(function(el, i) {
+el.classList.remove('active', 'done');
+if (i < idx) el.classList.add('done');
+if (i === idx) el.classList.add('active');
+});
+}
+
+function updateProgress(pct, text) {
+const fill = document.getElementById('progressFill');
+fill.style.width = pct + '%';
+if (pct > 0 && pct < 100) {
+fill.classList.add('active');
+} else {
+fill.classList.remove('active');
+}
+if (text) document.getElementById('statusText').textContent = text;
+}
+
+async function browseFile() {
+try {
+const resp = await fetch(API + '/api/browse');
+const data = await resp.json();
+if (data.path) {
+document.getElementById('videoPath').value = data.path;
+log('已選擇檔案: ' + data.path);
+}
+} catch (e) {
+log('瀏覽檔案失敗: ' + e.message, 'error');
+}
+}
+
+async function addToQueue() {
+const videoPath = document.getElementById('videoPath').value.trim();
+if (!videoPath) {
+log('請輸入影片路徑', 'error');
+return;
+}
+const whisperModel = document.getElementById('whisperModel').value;
+const language = document.getElementById('language').value;
+
+log('正在提交分析任務...');
+document.getElementById('sec-results').classList.add('hidden');
+document.getElementById('sec-editor').classList.add('hidden');
+updateProgress(0, '正在提交...');
+setStage(-1);
+
+try {
+const resp = await fetch(API + '/api/analyze', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+video_path: videoPath,
+whisper_model: whisperModel,
+language: language,
+confidence_threshold: parseFloat(document.getElementById('confidence').value),
+pause_threshold: parseFloat(document.getElementById('pauseThreshold').value)
+})
+});
+const data = await resp.json();
+if (data.task_id) {
+currentTaskId = data.task_id;
+log('任務已建立: ' + data.task_id, 'success');
+startSSE(data.task_id);
+} else if (data.error) {
+log('錯誤: ' + data.error, 'error');
+updateProgress(0, '任務建立失敗');
+}
+} catch (e) {
+log('請求失敗: ' + e.message, 'error');
+updateProgress(0, '請求失敗');
+}
+}
+
+function startSSE(taskId) {
+const es = new EventSource(API + '/api/task/' + taskId + '/stream');
+
+es.addEventListener('progress', function(e) {
+try {
+const data = JSON.parse(e.data);
+const stageIdx = STAGE_MAP[data.stage];
+if (stageIdx !== undefined) {
+setStage(stageIdx);
+}
+const pct = data.progress != null ? data.progress : 0;
+const msg = data.message || data.stage || '處理中...';
+updateProgress(pct, msg);
+log(msg);
+} catch (err) {
+log('進度解析錯誤: ' + err.message, 'warn');
+}
+});
+
+es.addEventListener('done', function(e) {
+try {
+const result = JSON.parse(e.data);
+es.close();
+updateProgress(100, '分析完成');
+setStage(5);
+log('分析完成！', 'success');
+showResults(result);
+} catch (err) {
+es.close();
+log('結果解析錯誤: ' + err.message, 'error');
+}
+});
+
+es.addEventListener('error', function(e) {
+if (es.readyState === EventSource.CLOSED) return;
+try {
+if (e.data) {
+const data = JSON.parse(e.data);
+log('錯誤: ' + (data.message || '未知錯誤'), 'error');
+}
+} catch (err) {
+log('串流連線錯誤', 'error');
+}
+es.close();
+updateProgress(0, '連線中斷');
+});
+}
+
+function showResults(result) {
+const segments = result.segments || result;
+currentSegments = segments;
+const usable = segments.filter(function(s) { return s.type === 'usable'; }).length;
+const cut = segments.length - usable;
+
+document.getElementById('statTotal').textContent = segments.length;
+document.getElementById('statUsable').textContent = usable;
+document.getElementById('statCut').textContent = cut;
+
+document.getElementById('sec-results').classList.remove('hidden');
+showSegmentEditor(segments);
+document.getElementById('sec-timeline').classList.remove('hidden');
+document.getElementById('sec-export').classList.remove('hidden');
+document.getElementById('sec-preview').classList.remove('hidden');
+if(result.energy_profile){currentEnergyData=result.energy_profile;}
+if(result.fps){currentFps=result.fps;}
+if(result.total_duration){totalDuration=result.total_duration;}
+if(result.video_path){currentVideoPath=result.video_path;}
+renderTimeline(segments,totalDuration);
+}
+
+function showSegmentEditor(segments) {
+const box = document.getElementById('segmentsBox');
+box.innerHTML = '';
+
+segments.forEach(function(seg, i) {
+const div = document.createElement('div');
+div.className = 'seg-item';
+
+const cb = document.createElement('input');
+cb.type = 'checkbox';
+cb.checked = seg.type === 'usable';
+cb.dataset.segId = seg.id || i;
+cb.addEventListener('change', async function() {
+var override = this.checked ? 'usable' : 'cut';
+await toggleSegment(currentTaskId, seg.id || i, override);
+renderTimeline(currentSegments, totalDuration);
+});
+
+const tc = document.createElement('span');
+tc.className = 'seg-tc';
+tc.textContent = formatTime(seg.start) + ' → ' + formatTime(seg.end);
+
+const text = document.createElement('span');
+text.className = 'seg-text';
+text.textContent = seg.text || '';
+text.title = seg.text || '';
+
+const badge = document.createElement('span');
+const badgeType = seg.type || 'cut';
+badge.className = 'seg-badge badge-' + badgeType;
+badge.textContent = badgeType;
+
+div.appendChild(cb);
+div.appendChild(tc);
+div.appendChild(text);
+div.appendChild(badge);
+box.appendChild(div);
+});
+
+document.getElementById('sec-editor').classList.remove('hidden');
+}
+
+async function toggleSegment(taskId, segId, override) {
+try {
+const resp = await fetch(API + '/api/segment/toggle', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({
+task_id: taskId,
+segment_id: segId,
+override: override
+})
+});
+const data = await resp.json();
+if (data.segments) {
+currentSegments = data.segments;
+refreshStats(data.segments);
+} else {
+const seg = currentSegments.find(function(s) { return (s.id || currentSegments.indexOf(s)) === segId; });
+if (seg) seg.type = override;
+refreshStats(currentSegments);
+}
+log('片段 #' + segId + ' → ' + override, 'info');
+} catch (e) {
+log('切換片段失敗: ' + e.message, 'error');
+}
+}
+
+async function toggleSegmentFromTimeline(idx) {
+if (!currentSegments || idx >= currentSegments.length) return;
+var seg = currentSegments[idx];
+var newOverride = seg.is_kept ? 'cut' : 'usable';
+seg.manual_override = (newOverride === 'usable');
+seg.is_kept = (newOverride === 'usable');
+seg.type = newOverride;
+try {
+var resp = await fetch(API + '/api/segment/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ task_id: currentTaskId, segment_id: seg.id, override: newOverride }) });
+var data = await resp.json();
+if (data.segment) {
+seg.manual_override = data.segment.manual_override;
+seg.is_kept = data.segment.is_kept;
+seg.type = data.segment.type;
+}
+} catch (e) { log('切換失敗: ' + e.message, 'error'); }
+renderTimeline(currentSegments, totalDuration);
+refreshStats(currentSegments);
+showSegmentEditor(currentSegments);
+}
+
+function refreshStats(segments) {
+const usable = segments.filter(function(s) { return s.type === 'usable'; }).length;
+document.getElementById('statTotal').textContent = segments.length;
+document.getElementById('statUsable').textContent = usable;
+document.getElementById('statCut').textContent = segments.length - usable;
+}
+
+function selectAll(usable) {
+const boxes = document.querySelectorAll('#segmentsBox input[type="checkbox"]');
+boxes.forEach(function(cb) {
+const wasChecked = cb.checked;
+cb.checked = usable;
+if (wasChecked !== usable) {
+cb.dispatchEvent(new Event('change'));
+}
+});
+}
+
+async function applyChanges() {
+log('套用變更中...', 'info');
+const boxes = document.querySelectorAll('#segmentsBox input[type="checkbox"]');
+const overrides = [];
+boxes.forEach(function(cb) {
+overrides.push({
+segment_id: parseInt(cb.dataset.segId),
+override: cb.checked ? 'usable' : 'cut'
+});
+});
+try {
+const resp = await fetch(API + '/api/segment/apply', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ task_id: currentTaskId, overrides: overrides })
+});
+const data = await resp.json();
+if (data.segments) {
+currentSegments = data.segments;
+showSegmentEditor(data.segments);
+refreshStats(data.segments);
+}
+log('變更已套用', 'success');
+} catch (e) {
+log('套用變更失敗: ' + e.message, 'error');
+}
+}
+
+async function exportResult(format) {
+if (!currentTaskId) {
+log('無可匯出的任務', 'error');
+return;
+}
+log('正在匯出 ' + format + '...', 'info');
+try {
+const resp = await fetch(API + '/api/export', {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ task_id: currentTaskId, formats: format })
+});
+const data = await resp.json();
+if (data.files) {
+data.files.forEach(function(f) {
+log('已匯出: ' + f, 'success');
+});
+} else if (data.path) {
+log('已匯出: ' + data.path, 'success');
+} else {
+log('匯出完成', 'success');
+}
+} catch (e) {
+log('匯出失敗: ' + e.message, 'error');
+}
+}
+
+function toggleLayout(){
+isPinned=!isPinned;
+localStorage.setItem('sar_pinned',isPinned?'1':'0');
+applyLayout();
+}
+function applyLayout(){
+var btn=document.getElementById('btnPin');
+if(isPinned){
+btn.style.opacity='1';
+document.querySelectorAll('.layout-row').forEach(function(r){
+r.classList.remove('stack-mode','draggable');
+});
+}else{
+btn.style.opacity='0.5';
+document.querySelectorAll('.layout-row').forEach(function(r){
+r.classList.add('stack-mode','draggable');
+});
+}
+initDragDrop();
+}
+
+var rowOrder=JSON.parse(localStorage.getItem('sar_row_order')||'[]');
+function initDragDrop(){
+if(initDragDrop._done)return;
+initDragDrop._done=true;
+document.querySelectorAll('.drag-handle').forEach(function(handle){
+handle.addEventListener('dragstart',function(e){
+var row=e.target.closest('.layout-row');
+if(!row||!row.classList.contains('draggable')){e.preventDefault();return;}
+e.dataTransfer.setData('text/plain',row.dataset.rowId);
+row.classList.add('dragging');
+});
+handle.addEventListener('dragend',function(){
+document.querySelectorAll('.layout-row').forEach(function(r){r.classList.remove('dragging','drag-over');});
+saveRowOrder();
+});
+});
+document.querySelectorAll('.layout-row').forEach(function(row){
+row.addEventListener('dragover',function(e){e.preventDefault();if(row.classList.contains('draggable'))row.classList.add('drag-over');});
+row.addEventListener('dragleave',function(){row.classList.remove('drag-over');});
+row.addEventListener('drop',function(e){
+e.preventDefault();
+row.classList.remove('drag-over');
+var draggedId=e.dataTransfer.getData('text/plain');
+var dragged=document.querySelector('[data-row-id="'+draggedId+'"]');
+if(dragged&&dragged!==row&&dragged.classList.contains('draggable')){
+var container=document.querySelector('.container');
+var allRows=[].slice.call(container.querySelectorAll('.layout-row'));
+if(allRows.indexOf(dragged)<allRows.indexOf(row)){row.after(dragged);}else{row.before(dragged);}
+saveRowOrder();
+}
+});
+});
+restoreRowOrder();
+}
+function saveRowOrder(){
+var order=[].slice.call(document.querySelectorAll('.layout-row')).map(function(r){return r.dataset.rowId;});
+localStorage.setItem('sar_row_order',JSON.stringify(order));
+}
+function restoreRowOrder(){
+if(!rowOrder.length)return;
+var container=document.querySelector('.container');
+rowOrder.forEach(function(id){
+var row=document.querySelector('[data-row-id="'+id+'"]');
+if(row)container.appendChild(row);
+});
+}
+
+function renderWaveform(energyData,duration,segments){
+var canvas=document.getElementById('waveformCanvas');
+if(!canvas||!energyData||!energyData.length)return;
+var ctx=canvas.getContext('2d');
+var dpr=window.devicePixelRatio||1;
+var w=canvas.offsetWidth;
+var h=canvas.offsetHeight;
+canvas.width=w*dpr;
+canvas.height=h*dpr;
+ctx.scale(dpr,dpr);
+var timePerPx=duration/w;
+var bins=new Float32Array(w);
+energyData.forEach(function(e){
+var px=Math.min(w-1,Math.max(0,Math.floor(e.t/timePerPx)));
+bins[px]=Math.max(bins[px],e.energy);
+});
+var typeBins=[];
+for(var i=0;i<w;i++)typeBins[i]='silence';
+segments.forEach(function(seg){
+var sp=Math.floor(seg.start/timePerPx);
+var ep=Math.min(w,Math.ceil(seg.end/timePerPx));
+var t=seg.is_kept?(seg.type||'usable'):'cut';
+for(var i=sp;i<ep;i++)typeBins[i]=t;
+});
+var maxE=0;
+for(var i=0;i<w;i++)if(bins[i]>maxE)maxE=bins[i];
+if(maxE===0)maxE=1;
+ctx.clearRect(0,0,w,h);
+for(var x=0;x<w;x++){
+var energy=bins[x];
+var type=typeBins[x];
+var color=SEGMENT_COLORS[type]||SEGMENT_COLORS.silence;
+var barH=Math.max(1,(energy/maxE)*h*0.95);
+if(energy>0.005){
+var brightness=20+(energy/maxE)*55;
+ctx.fillStyle='hsl('+color.h+','+color.s+'%,'+brightness+'%)';
+}else{
+ctx.fillStyle='#161616';
+}
+ctx.fillRect(x,h-barH,1,barH);
+}
+}
+
+function renderTimecodes(dur){
+var container=document.getElementById('timelineBar');
+container.querySelectorAll('.tc-mark').forEach(function(el){el.remove();});
+var step=10;
+if(dur<30)step=5;
+if(dur<10)step=2;
+for(var t=0;t<=dur;t+=step){
+var mark=document.createElement('div');
+mark.className='tc-mark';
+mark.style.left=(t/dur*100)+'%';
+mark.textContent=formatTime(t);
+container.appendChild(mark);
+}
+}
+
+function updatePreview(timeSec){
+if(!currentVideoPath)return;
+clearTimeout(previewTimer);
+previewTimer=setTimeout(async function(){
+try{
+var resp=await fetch(API+'/api/video/frame',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({video_path:currentVideoPath,time:timeSec})});
+var data=await resp.json();
+if(data.frame){
+var img=new Image();
+img.onload=function(){
+var canvas=document.getElementById('previewCanvas');
+var ctx=canvas.getContext('2d');
+canvas.width=img.width;
+canvas.height=img.height;
+ctx.drawImage(img,0,0);
+document.getElementById('previewWrap').style.display='flex';
+document.getElementById('previewTime').textContent=formatTime(timeSec);
+};
+img.src=data.frame;
+}
+}catch(e){}
+},100);
+}
+
+function renderTimeline(segments,dur){
+totalDuration=dur;
+var overlay=document.getElementById('timelineOverlay');
+overlay.innerHTML='';
+segments.forEach(function(seg,i){
+var pct=((seg.end-seg.start)/dur*100);
+var div=document.createElement('div');
+div.className='timeline-seg '+(seg.is_kept?'usable':'cut');
+div.style.width=pct+'%';
+div.dataset.idx=i;
+div.title=formatTime(seg.start)+' → '+formatTime(seg.end)+'\n'+(seg.text||'')+'\n['+seg.type+'] '+(seg.confidence*100).toFixed(0)+'%';
+div.addEventListener('click',function(e){
+var rect=div.getBoundingClientRect();
+var ratio=(e.clientX-rect.left)/rect.width;
+var rawTime=seg.start+ratio*(seg.end-seg.start);
+if(currentTool==='select'){
+cursorTime=rawTime;
+updateCursor();
+updatePreview(rawTime);
+toggleSegmentFromTimeline(i);
+}else if(currentTool==='razor'){
+var frame=Math.round(rawTime*currentFps);
+splitSegment(seg.id,frame/currentFps);
+}
+});
+overlay.appendChild(div);
+});
+if(currentEnergyData&&currentEnergyData.length){
+renderWaveform(currentEnergyData,dur,segments);
+}
+renderTimecodes(dur);
+updateCursor();
+}
+
+function selectQuality(el){
+document.querySelectorAll('.quality-option').forEach(function(o){o.classList.remove('active')});
+el.classList.add('active');
+}
+
+function setTool(tool){
+currentTool=tool;
+document.getElementById('btnSelect').classList.toggle('active',tool==='select');
+document.getElementById('btnRazor').classList.toggle('active',tool==='razor');
+document.getElementById('timelineBar').classList.toggle('razor-mode',tool==='razor');
+}
+
+function updateCursor(){
+var pct=(cursorTime/totalDuration*100);
+document.getElementById('cursorLine').style.left=pct+'%';
+}
+
+function setZoom(level){
+zoomLevel=Math.max(1,Math.min(20,level));
+document.getElementById('zoomSlider').value=zoomLevel;
+document.getElementById('zoomVal').textContent=zoomLevel+'x';
+}
+
+async function splitSegment(segId,splitTime){
+log('🔪 分割片段 #'+segId+' @ '+formatTime(splitTime),'info');
+try{
+var resp=await fetch(API+'/api/segment/split',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:currentTaskId,segment_id:segId,split_time:splitTime})});
+var data=await resp.json();
+if(data.segments){
+currentSegments=data.segments;
+showSegmentEditor(data.segments);
+renderTimeline(data.segments,data.total_duration||totalDuration);
+refreshStats(data.segments);
+log('✅ 分割完成，共 '+data.segments.length+' 個片段','success');
+}else{log('❌ 分割失敗: '+(data.error||''),'error');}
+}catch(e){log('分割錯誤: '+e.message,'error');}
+}
+
+async function cutAtCursor(mode){
+if(!currentTaskId||!cursorTime){return;}
+var seg=currentSegments.find(function(s){return cursorTime>s.start&&cursorTime<s.end});
+if(!seg){log('游標不在任何片段上','warn');return;}
+var frame=Math.round(cursorTime*currentFps);
+var alignedTime=frame/currentFps;
+try{
+var resp=await fetch(API+'/api/segment/split',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:currentTaskId,segment_id:seg.id,split_time:alignedTime})});
+var data=await resp.json();
+if(!data.segments){log('分割失敗: '+(data.error||''),'error');return;}
+currentSegments=data.segments;
+if(mode==='before'){
+var before=currentSegments.find(function(s){return s.start<alignedTime&&s.end>=alignedTime-0.01});
+if(before){await toggleSegment(currentTaskId,before.id,'cut');}
+}else{
+var after=currentSegments.find(function(s){return Math.abs(s.start-alignedTime)<0.01});
+if(after){await toggleSegment(currentTaskId,after.id,'cut');}
+}
+showSegmentEditor(currentSegments);
+renderTimeline(currentSegments,totalDuration);
+refreshStats(currentSegments);
+log((mode==='before'?'Q':'W')+': 已剪切 @ '+formatTime(alignedTime),'success');
+}catch(e){log('剪切錯誤: '+e.message,'error');}
+}
+
+async function autoEdit(){
+if(!currentTaskId){log('請先分析影片','error');return;}
+var qEl=document.querySelector('.quality-option.active');
+var quality=qEl?qEl.dataset.quality:'copy';
+var enhance=document.getElementById('enhanceAudio').checked;
+document.getElementById('editProgress').classList.remove('hidden');
+document.getElementById('editFill').style.width='20%';
+document.getElementById('editStatus').textContent='ffmpeg 處理中...';
+log('🎬 開始匯出 (品質: '+quality+')...','info');
+try{
+var resp=await fetch(API+'/api/video/auto-edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({task_id:currentTaskId,quality:quality,enhance:enhance})});
+var data=await resp.json();
+if(data.success){
+document.getElementById('editFill').style.width='100%';
+document.getElementById('editStatus').textContent='完成！';
+log('✅ 影片已匯出: '+data.output_path,'success');
+log('保留 '+data.kept_count+' 段 | '+data.original_duration.toFixed(1)+'s → '+data.output_duration.toFixed(1)+'s','success');
+}else{log('❌ 匯出失敗: '+(data.error||''),'error');}
+}catch(e){log('匯出錯誤: '+e.message,'error');}
+}
+
+document.addEventListener('keydown',function(e){
+if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return;
+if(e.key==='b'||e.key==='B'){setTool(currentTool==='select'?'razor':'select');}
+if(e.key==='q'||e.key==='Q'){cutAtCursor('before');}
+if(e.key==='w'||e.key==='W'){cutAtCursor('after');}
+if(e.altKey&&(e.key==='='||e.key==='+')){e.preventDefault();setZoom(zoomLevel+1);}
+if(e.altKey&&e.key==='-'){e.preventDefault();setZoom(zoomLevel-1);}
+});
+
+var savedPin=localStorage.getItem('sar_pinned');
+isPinned=savedPin!=='0';
+applyLayout();
+log('Smart A-Roll v4.0 就緒');
+</script>
+</body>
+</html>

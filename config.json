@@ -1,0 +1,85 @@
+{
+  "whisper": {
+    "model_size": "large-v3",
+    "language": "zh",
+    "device": "cuda",
+    "compute_type": "float16",
+    "beam_size": 1,
+    "vad_filter": true,
+    "vad_threshold": 0.5,
+    "vad_min_silence_ms": 500,
+    "vad_speech_pad_ms": 200,
+    "condition_on_previous_text": false
+  },
+  "llm": {
+    "enabled": true,
+    "model_path": "",
+    "n_ctx": 2048,
+    "n_threads": 4,
+    "n_gpu_layers": 0,
+    "max_tokens": 256,
+    "temperature": 0.05,
+    "use_flash_attention": false
+  },
+  "analysis": {
+    "confidence_threshold": 0.2,
+    "pause_gap_sec": 2.0,
+    "min_segment_duration": 0.3,
+    "sigmoid_k": 4.0,
+    "sigmoid_threshold": -0.5
+  },
+  "rules": {
+    "filler_patterns": [
+      "\\b(嗯+|啊+|呃+|喔+|哦+)\\b",
+      "\\b(就是|然後|那個|這個|對吧|是不是)\\b",
+      "\\b(基本上|其實|反正|總之|然後呢|對不對)\\b"
+    ],
+    "repeat_patterns": [
+      "\\b(\\w{2,})\\b[\\s，。]*\\1"
+    ],
+    "cue_patterns": {
+      "clap_cue": "\\b拍手\\b",
+      "cut_cue": "\\b(cut|剪這裡|重來|NG)\\b"
+    },
+    "throat_patterns": [
+      "\\b(嗯哼|嗯嗯|啊啊)\\b"
+    ],
+    "correction_patterns": [
+      "\\b(不是|不對|我是說|應該是)\\b"
+    ]
+  },
+  "export": {
+    "frame_rate": null,
+    "dv_track_index": 1,
+    "result_dir": "results",
+    "log_dir": "logs",
+    "cache_dir": "~/.cache/smart_aroll",
+    "enable_cache": false
+  },
+  "ffmpeg": {
+    "path": "",
+    "ffprobe_path": "",
+    "prefer_nvenc": true,
+    "nvenc_preset": "p4",
+    "crf": 23
+  },
+  "tts": {
+    "enabled": false,
+    "engine": "edge-tts",
+    "voice_zh": "zh-TW-HsiaoChenNeural",
+    "rate": "+0%",
+    "pitch": "+0Hz"
+  },
+  "enhance": {
+    "enabled": false,
+    "highpass_freq": 80,
+    "lowpass_freq": 12000,
+    "normalize": true,
+    "target_lufs": -16.0,
+    "denoise": false
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8888
+  }
+}

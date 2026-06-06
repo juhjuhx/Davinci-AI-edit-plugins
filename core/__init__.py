@@ -1,0 +1,38 @@
+"""
+Smart A-Roll 核心模組
+"""
+__version__ = "4.0.0"
+__all__ = [
+    "Config",
+    "get_config",
+    "reload_config",
+    "Analyzer",
+    "WhisperTranscriber",
+    "AudioAnalyzer",
+    "RulesEngine",
+    "FFmpegRunner",
+    "get_runner",
+    "LLMAnalyzer",
+    "get_llm",
+    "reset_llm",
+    "EDLExporter",
+    "CSVExporter",
+    "TranscriptExporter",
+    "export_all",
+    "ResolveIntegration",
+    "AnalysisSegment",
+    "AnalysisResult",
+    "TranscriptionSegment",
+    "VideoInfo",
+    "SegmentType",
+    "Priority",
+    "QueueTask",
+    "sigmoid_confidence",
+    "enhance_audio_pipeline",
+    "normalize_loudness",
+    "generate_placeholder",
+    "patch_silence",
+    "clean_path",
+    "fix_dll_path",
+    "lazy_import",
+]
