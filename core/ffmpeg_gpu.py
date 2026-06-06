@@ -7,6 +7,7 @@
 - 視訊編碼 (NVENC 加速)
 - 音訊增強濾鏡鏈
 """
+
 import json
 import logging
 import os
@@ -70,8 +71,14 @@ def _run(cmd: List[str], timeout: int = None, capture: bool = True) -> Tuple[int
 class FFmpegRunner:
     """FFmpeg 執行器"""
 
-    def __init__(self, ffmpeg_path: str = None, ffprobe_path: str = None,
-                 prefer_nvenc: bool = True, nvenc_preset: str = "p4", crf: int = 23):
+    def __init__(
+        self,
+        ffmpeg_path: str = None,
+        ffprobe_path: str = None,
+        prefer_nvenc: bool = True,
+        nvenc_preset: str = "p4",
+        crf: int = 23,
+    ):
         self.ffmpeg_path = ffmpeg_path or self._find_ffmpeg()
         self.ffprobe_path = ffprobe_path or self._find_ffprobe(self.ffmpeg_path)
         self.prefer_nvenc = prefer_nvenc
@@ -154,8 +161,10 @@ class FFmpegRunner:
 
         cmd = [
             self.ffprobe_path,
-            "-v", "error",
-            "-print_format", "json",
+            "-v",
+            "error",
+            "-print_format",
+            "json",
             "-show_format",
             "-show_streams",
             video_path,
@@ -213,16 +222,23 @@ class FFmpegRunner:
         except Exception:
             return 30.0
 
-    def extract_audio(self, video_path: str, output_path: str,
-                      sample_rate: int = 16000, channels: int = 1) -> str:
+    def extract_audio(self, video_path: str, output_path: str, sample_rate: int = 16000, channels: int = 1) -> str:
         """提取音訊為 PCM 16k mono (Whisper 友善)"""
         cmd = [
-            self.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-            "-i", video_path,
+            self.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            video_path,
             "-vn",
-            "-acodec", "pcm_s16le",
-            "-ar", str(sample_rate),
-            "-ac", str(channels),
+            "-acodec",
+            "pcm_s16le",
+            "-ar",
+            str(sample_rate),
+            "-ac",
+            str(channels),
             output_path,
         ]
         rc, _, err = _run(cmd)
@@ -230,10 +246,16 @@ class FFmpegRunner:
             raise RuntimeError(f"音訊提取失敗: {err}")
         return output_path
 
-    def encode_video(self, input_path: str, output_path: str,
-                     video_filters: str = None, audio_filters: str = None,
-                     crf: int = None, preset: str = None,
-                     copy_audio: bool = True) -> str:
+    def encode_video(
+        self,
+        input_path: str,
+        output_path: str,
+        video_filters: str = None,
+        audio_filters: str = None,
+        crf: int = None,
+        preset: str = None,
+        copy_audio: bool = True,
+    ) -> str:
         """編碼視訊 (自動選 NVENC 或 libx264)"""
         encoder, extra_args = self.get_video_encoder()
 
@@ -246,8 +268,13 @@ class FFmpegRunner:
             extra_args["preset"] = preset
 
         cmd = [
-            self.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-            "-i", input_path,
+            self.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            input_path,
         ]
         if video_filters:
             cmd += ["-vf", video_filters]
@@ -277,10 +304,19 @@ class FFmpegRunner:
                     f.write(f"file '{seg.replace(chr(39), chr(39) + chr(92) + chr(39))}'\n")
 
             cmd = [
-                self.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-                "-f", "concat", "-safe", "0",
-                "-i", list_file,
-                "-c", "copy",
+                self.ffmpeg_path,
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-f",
+                "concat",
+                "-safe",
+                "0",
+                "-i",
+                list_file,
+                "-c",
+                "copy",
                 output_path,
             ]
             rc, _, err = _run(cmd)
@@ -294,14 +330,20 @@ class FFmpegRunner:
                 except OSError:
                     pass
 
-    def apply_audio_filters(self, input_path: str, output_path: str,
-                            filters: List[str]) -> str:
+    def apply_audio_filters(self, input_path: str, output_path: str, filters: List[str]) -> str:
         """套用音訊濾鏡鏈"""
         cmd = [
-            self.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-            "-i", input_path,
-            "-af", ",".join(filters),
-            "-c:a", "pcm_s16le",
+            self.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            input_path,
+            "-af",
+            ",".join(filters),
+            "-c:a",
+            "pcm_s16le",
             output_path,
         ]
         rc, _, err = _run(cmd)
@@ -309,8 +351,7 @@ class FFmpegRunner:
             raise RuntimeError(f"音訊處理失敗: {err}")
         return output_path
 
-    def burn_subtitles(self, video_path: str, srt_path: str,
-                       output_path: str, font: str = "Microsoft JhengHei") -> str:
+    def burn_subtitles(self, video_path: str, srt_path: str, output_path: str, font: str = "Microsoft JhengHei") -> str:
         """燒錄字幕"""
         srt_escaped = srt_path.replace("\\", "/").replace(":", "\\:")
 
@@ -322,10 +363,17 @@ class FFmpegRunner:
 
         encoder, extra_args = self.get_video_encoder()
         cmd = [
-            self.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-            "-i", video_path,
-            "-vf", video_filter,
-            "-c:v", encoder,
+            self.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            video_path,
+            "-vf",
+            video_filter,
+            "-c:v",
+            encoder,
         ]
         for k, v in extra_args.items():
             cmd += [f"-{k}", v]

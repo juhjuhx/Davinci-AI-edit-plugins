@@ -26,10 +26,16 @@ Answer:"""
 
 
 class LLMAnalyzer:
-
-    def __init__(self, model_path: str, n_ctx: int = 2048, n_threads: int = 4,
-                 n_gpu_layers: int = 0, max_tokens: int = 256,
-                 temperature: float = 0.05, use_flash_attention: bool = False):
+    def __init__(
+        self,
+        model_path: str,
+        n_ctx: int = 2048,
+        n_threads: int = 4,
+        n_gpu_layers: int = 0,
+        max_tokens: int = 256,
+        temperature: float = 0.05,
+        use_flash_attention: bool = False,
+    ):
         self.model_path = model_path
         self.n_ctx = n_ctx
         self.n_threads = n_threads
@@ -82,6 +88,7 @@ class LLMAnalyzer:
             self._llm = None
             self._enabled = False
             import gc
+
             gc.collect()
 
     @property

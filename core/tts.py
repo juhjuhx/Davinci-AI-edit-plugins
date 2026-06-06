@@ -7,6 +7,7 @@
 - generate_placeholder: 生成對應長度的靜音音訊,用於填補被剪的位置
 - 預留: 之後可整合真正的 TTS 引擎
 """
+
 import logging
 import os
 import subprocess
@@ -23,21 +24,30 @@ def _try_import_edge_tts():
         return _edge_tts
     try:
         import edge_tts
+
         _edge_tts = edge_tts
         return _edge_tts
     except ImportError:
         return None
 
 
-def _run_ffmpeg_silence(duration: float, output_path: str,
-                        sample_rate: int = 16000, channels: int = 1,
-                        ffmpeg_path: str = "") -> str:
+def _run_ffmpeg_silence(
+    duration: float, output_path: str, sample_rate: int = 16000, channels: int = 1, ffmpeg_path: str = ""
+) -> str:
     cmd = [
-        ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-        "-f", "lavfi",
-        "-i", f"anullsrc=channel_layout={'mono' if channels==1 else 'stereo'}:sample_rate={sample_rate}",
-        "-t", str(duration),
-        "-c:a", "pcm_s16le",
+        ffmpeg_path,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-f",
+        "lavfi",
+        "-i",
+        f"anullsrc=channel_layout={'mono' if channels == 1 else 'stereo'}:sample_rate={sample_rate}",
+        "-t",
+        str(duration),
+        "-c:a",
+        "pcm_s16le",
         output_path,
     ]
     proc = subprocess.run(cmd, capture_output=True)
@@ -46,17 +56,16 @@ def _run_ffmpeg_silence(duration: float, output_path: str,
     return output_path
 
 
-def generate_placeholder(duration: float, output_path: str,
-                         sample_rate: int = 16000,
-                         ffmpeg_path: str = "") -> str:
+def generate_placeholder(duration: float, output_path: str, sample_rate: int = 16000, ffmpeg_path: str = "") -> str:
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
     _run_ffmpeg_silence(duration, output_path, sample_rate=sample_rate, ffmpeg_path=ffmpeg_path)
     logger.info(f"✓ 生成靜音 placeholder: {output_path} ({duration:.2f}s)")
     return output_path
 
 
-def text_to_speech(text: str, output_path: str, voice: str = "zh-TW-HsiaoChenNeural",
-                   rate: str = "+0%", pitch: str = "+0Hz") -> Optional[str]:
+def text_to_speech(
+    text: str, output_path: str, voice: str = "zh-TW-HsiaoChenNeural", rate: str = "+0%", pitch: str = "+0Hz"
+) -> Optional[str]:
     edge_tts = _try_import_edge_tts()
     if edge_tts is None:
         logger.warning("edge-tts 未安裝,跳過 TTS")
@@ -76,9 +85,9 @@ def text_to_speech(text: str, output_path: str, voice: str = "zh-TW-HsiaoChenNeu
         return None
 
 
-def patch_silence(audio_path: str, silence_segments: List[Dict[str, float]],
-                  output_path: str,
-                  ffmpeg_path: str = "") -> str:
+def patch_silence(
+    audio_path: str, silence_segments: List[Dict[str, float]], output_path: str, ffmpeg_path: str = ""
+) -> str:
     if not silence_segments:
         return audio_path
 
@@ -91,10 +100,17 @@ def patch_silence(audio_path: str, silence_segments: List[Dict[str, float]],
     filter_str = ",".join(filters)
 
     cmd = [
-        ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-        "-i", audio_path,
-        "-af", filter_str,
-        "-c:a", "pcm_s16le",
+        ffmpeg_path,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-i",
+        audio_path,
+        "-af",
+        filter_str,
+        "-c:a",
+        "pcm_s16le",
         output_path,
     ]
     proc = subprocess.run(cmd, capture_output=True)

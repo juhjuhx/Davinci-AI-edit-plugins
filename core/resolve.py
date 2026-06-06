@@ -48,18 +48,8 @@ class ResolveIntegration:
 
                 if not seg.is_kept:
                     marker_color = cls._MARKER_COLORS.get(seg.type, "Yellow")
-                    note = " | ".join(filter(None, [
-                        seg.type.value,
-                        seg.reason,
-                        seg.text[:60]
-                    ]))
-                    clip.AddMarker(
-                        clip.GetStart(),
-                        marker_color,
-                        "AI",
-                        note,
-                        max(1, seg_ef - seg_sf)
-                    )
+                    note = " | ".join(filter(None, [seg.type.value, seg.reason, seg.text[:60]]))
+                    clip.AddMarker(clip.GetStart(), marker_color, "AI", note, max(1, seg_ef - seg_sf))
 
                 applied += 1
 

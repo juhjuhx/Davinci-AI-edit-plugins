@@ -22,6 +22,7 @@ except Exception as e:
 
 try:
     import DaVinciResolveScript as dvr  # noqa: N813
+
     resolve = dvr.scriptapp("Resolve")
     if not resolve:
         print("[SmartAroll] Error: Not connected to Resolve")

@@ -5,6 +5,7 @@ Flask 主程式
 - SSE 進度推送
 - 統一日誌
 """
+
 import argparse
 import base64
 import json
@@ -37,7 +38,7 @@ config = get_config()
 log_dir = config.export.get("log_dir", "logs")
 os.makedirs(log_dir, exist_ok=True)
 log_file = os.path.join(log_dir, "smart_aroll.log")
-file_handler = RotatingFileHandler(log_file, maxBytes=10*1024*1024, backupCount=5, encoding="utf-8")
+file_handler = RotatingFileHandler(log_file, maxBytes=10 * 1024 * 1024, backupCount=5, encoding="utf-8")
 file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s"))
 console_handler = logging.StreamHandler()
@@ -82,12 +83,14 @@ def index():
 
 @app.route("/health")
 def health():
-    return jsonify({
-        "status": "ok",
-        "version": "4.0",
-        "time": datetime.now().isoformat(),
-        "gpu_nvenc": get_app_runner().nvenc_available,
-    })
+    return jsonify(
+        {
+            "status": "ok",
+            "version": "4.0",
+            "time": datetime.now().isoformat(),
+            "gpu_nvenc": get_app_runner().nvenc_available,
+        }
+    )
 
 
 @app.route("/api/analyze", methods=["POST"])
@@ -112,21 +115,23 @@ def api_task_status(task_id):
     if not task:
         return jsonify({"error": "task not found"}), 404
     result = worker.get_result(task_id)
-    return jsonify({
-        "task": {
-            "id": task.id,
-            "video_path": task.video_path,
-            "status": task.status,
-            "progress": task.progress,
-            "stage": task.stage,
-            "message": task.message,
-            "error": task.error,
-            "created_at": task.created_at,
-            "started_at": task.started_at,
-            "finished_at": task.finished_at,
-        },
-        "result": result.to_dict() if result else None,
-    })
+    return jsonify(
+        {
+            "task": {
+                "id": task.id,
+                "video_path": task.video_path,
+                "status": task.status,
+                "progress": task.progress,
+                "stage": task.stage,
+                "message": task.message,
+                "error": task.error,
+                "created_at": task.created_at,
+                "started_at": task.started_at,
+                "finished_at": task.finished_at,
+            },
+            "result": result.to_dict() if result else None,
+        }
+    )
 
 
 @app.route("/api/queue")
@@ -146,12 +151,14 @@ def api_task_stream(task_id):
             if not task:
                 yield f"event: error\ndata: {json.dumps({'error': 'task not found'})}\n\n"
                 break
-            msg = json.dumps({
-                "status": task.status,
-                "progress": task.progress,
-                "stage": task.stage,
-                "message": task.message,
-            })
+            msg = json.dumps(
+                {
+                    "status": task.status,
+                    "progress": task.progress,
+                    "stage": task.stage,
+                    "message": task.message,
+                }
+            )
             if msg != last_msg:
                 yield f"event: progress\ndata: {msg}\n\n"
                 last_msg = msg
@@ -166,8 +173,9 @@ def api_task_stream(task_id):
         else:
             yield f"event: timeout\ndata: {json.dumps({'error': 'stream timeout'})}\n\n"
 
-    return Response(generate(), mimetype="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+    return Response(
+        generate(), mimetype="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
+    )
 
 
 @app.route("/api/segment/toggle", methods=["POST"])
@@ -199,12 +207,14 @@ def api_toggle_segment():
     result.used_duration = sum(s.duration for s in result.segments if s.is_kept)
     result.cut_duration = sum(s.duration for s in result.segments if not s.is_kept)
 
-    return jsonify({
-        "success": True,
-        "segment": target.to_dict(),
-        "used_duration": result.used_duration,
-        "cut_duration": result.cut_duration,
-    })
+    return jsonify(
+        {
+            "success": True,
+            "segment": target.to_dict(),
+            "used_duration": result.used_duration,
+            "cut_duration": result.cut_duration,
+        }
+    )
 
 
 @app.route("/api/segment/apply", methods=["POST"])
@@ -224,7 +234,7 @@ def api_apply_segments():
                 if override == "clear":
                     s.manual_override = None
                 else:
-                    s.manual_override = (override == "usable")
+                    s.manual_override = override == "usable"
                 break
     result.used_duration = sum(s.duration for s in result.segments if s.is_kept)
     result.cut_duration = sum(s.duration for s in result.segments if not s.is_kept)
@@ -260,28 +270,41 @@ def api_split_segment():
     text_b = text[split_char:]
     new_id = max(s.id for s in result.segments) + 1
     from core.models import AnalysisSegment as _Seg
+
     seg_a = _Seg(
-        id=target.id, start=target.start, end=split_time,
-        text=text_a, confidence=target.confidence,
-        type=target.type, priority=target.priority,
-        reason=target.reason, rules_hit=list(target.rules_hit),
+        id=target.id,
+        start=target.start,
+        end=split_time,
+        text=text_a,
+        confidence=target.confidence,
+        type=target.type,
+        priority=target.priority,
+        reason=target.reason,
+        rules_hit=list(target.rules_hit),
         manual_override=target.manual_override,
     )
     seg_b = _Seg(
-        id=new_id, start=split_time, end=target.end,
-        text=text_b, confidence=target.confidence,
-        type=target.type, priority=target.priority,
-        reason=target.reason, rules_hit=list(target.rules_hit),
+        id=new_id,
+        start=split_time,
+        end=target.end,
+        text=text_b,
+        confidence=target.confidence,
+        type=target.type,
+        priority=target.priority,
+        reason=target.reason,
+        rules_hit=list(target.rules_hit),
         manual_override=target.manual_override,
     )
-    result.segments[target_idx:target_idx+1] = [seg_a, seg_b]
+    result.segments[target_idx : target_idx + 1] = [seg_a, seg_b]
     result.used_duration = sum(s.duration for s in result.segments if s.is_kept)
     result.cut_duration = sum(s.duration for s in result.segments if not s.is_kept)
-    return jsonify({
-        "success": True,
-        "segments": [s.to_dict() for s in result.segments],
-        "total_duration": result.total_duration,
-    })
+    return jsonify(
+        {
+            "success": True,
+            "segments": [s.to_dict() for s in result.segments],
+            "total_duration": result.total_duration,
+        }
+    )
 
 
 @app.route("/api/export", methods=["POST"])
@@ -301,8 +324,7 @@ def api_export():
     paths = {}
     try:
         if "edl" in formats:
-            edl = EDLExporter(fps=result.fps or 30.0,
-                              track_index=config.export.get("dv_track_index", 1))
+            edl = EDLExporter(fps=result.fps or 30.0, track_index=config.export.get("dv_track_index", 1))
             paths["edl"] = edl.export(result, os.path.join(output_dir, f"{base_name}.edl"))
         if "csv" in formats:
             paths["csv"] = CSVExporter().export(result, os.path.join(output_dir, f"{base_name}.csv"))
@@ -310,17 +332,17 @@ def api_export():
             paths["srt"] = TranscriptExporter().export_srt(result, os.path.join(output_dir, f"{base_name}.srt"))
         if "transcript" in formats:
             paths["transcript"] = TranscriptExporter().export_text(
-                result, os.path.join(output_dir, f"{base_name}_transcript.txt"))
+                result, os.path.join(output_dir, f"{base_name}_transcript.txt")
+            )
         if "transcript_kept" in formats:
             paths["transcript_kept"] = TranscriptExporter().export_text(
-                result, os.path.join(output_dir, f"{base_name}_kept.txt"), kept_only=True)
+                result, os.path.join(output_dir, f"{base_name}_kept.txt"), kept_only=True
+            )
         if "markers" in formats:
             edl = EDLExporter(fps=result.fps or 30.0)
             paths["markers"] = edl.export_markers(result, os.path.join(output_dir, f"{base_name}_markers.csv"))
         if "all" in formats:
-            paths = export_all(result, output_dir,
-                               fps=result.fps,
-                               track_index=config.export.get("dv_track_index", 1))
+            paths = export_all(result, output_dir, fps=result.fps, track_index=config.export.get("dv_track_index", 1))
     except Exception as e:
         logger.error(f"匯出失敗: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
@@ -336,16 +358,18 @@ def api_video_info():
         return jsonify({"error": "找不到影片"}), 404
     try:
         info = get_app_runner().get_info(video_path)
-        return jsonify({
-            "path": info.path,
-            "duration": info.duration,
-            "fps": info.fps,
-            "width": info.width,
-            "height": info.height,
-            "codec": info.codec,
-            "audio_codec": info.audio_codec,
-            "file_size_mb": round(info.file_size / 1024 / 1024, 2),
-        })
+        return jsonify(
+            {
+                "path": info.path,
+                "duration": info.duration,
+                "fps": info.fps,
+                "width": info.width,
+                "height": info.height,
+                "codec": info.codec,
+                "audio_codec": info.audio_codec,
+                "file_size_mb": round(info.file_size / 1024 / 1024, 2),
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -353,6 +377,7 @@ def api_video_info():
 @app.route("/api/audio/silence", methods=["POST"])
 def api_detect_silence():
     from core.analyzer import AudioAnalyzer
+
     data = request.json or {}
     video_path = data.get("video_path")
     if not video_path or not os.path.isfile(video_path):
@@ -367,11 +392,13 @@ def api_detect_silence():
         runner.extract_audio(video_path, audio_temp)
         analyzer = AudioAnalyzer(config)
         silences = analyzer.detect_silence(audio_temp, threshold=threshold, min_duration=min_duration)
-        return jsonify({
-            "success": True,
-            "silences": silences,
-            "total_silence": sum(s["duration"] for s in silences),
-        })
+        return jsonify(
+            {
+                "success": True,
+                "silences": silences,
+                "total_silence": sum(s["duration"] for s in silences),
+            }
+        )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     finally:
@@ -385,6 +412,7 @@ def api_detect_silence():
 @app.route("/api/audio/energy", methods=["POST"])
 def api_audio_energy():
     from core.analyzer import AudioAnalyzer
+
     data = request.json or {}
     video_path = data.get("video_path")
     if not video_path or not os.path.isfile(video_path):
@@ -416,10 +444,24 @@ def api_video_frame():
         return jsonify({"error": "找不到影片"}), 404
     runner = get_app_runner()
     cmd = [
-        runner.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-        "-ss", str(time_sec), "-i", video_path,
-        "-vframes", "1", "-vf", "scale=iw/4:ih/4",
-        "-f", "image2pipe", "-vcodec", "mjpeg", "pipe:1"
+        runner.ffmpeg_path,
+        "-y",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        str(time_sec),
+        "-i",
+        video_path,
+        "-vframes",
+        "1",
+        "-vf",
+        "scale=iw/4:ih/4",
+        "-f",
+        "image2pipe",
+        "-vcodec",
+        "mjpeg",
+        "pipe:1",
     ]
     try:
         proc = subprocess.run(cmd, capture_output=True, timeout=10)
@@ -448,10 +490,23 @@ def api_video_cut():
         runner = get_app_runner()
         encoder, _ = runner.get_video_encoder()
         cmd = [
-            runner.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-            "-ss", str(start_time), "-i", video_path,
-            "-to", str(end_time - start_time),
-            "-c:v", encoder, "-c:a", "aac", "-b:a", "192k",
+            runner.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-ss",
+            str(start_time),
+            "-i",
+            video_path,
+            "-to",
+            str(end_time - start_time),
+            "-c:v",
+            encoder,
+            "-c:a",
+            "aac",
+            "-b:a",
+            "192k",
         ]
         if encoder == "h264_nvenc":
             cmd += ["-preset", runner._nvenc_preset, "-cq", str(runner._crf), "-b:v", "0"]
@@ -502,15 +557,26 @@ def api_video_speed():
         video_filter = f"setpts=PTS/{speed}"
         audio_filter = f"atempo={speed}"
         if speed > 2.0:
-            audio_filter = f"atempo=2.0,atempo={speed/2.0}"
+            audio_filter = f"atempo=2.0,atempo={speed / 2.0}"
         elif speed < 0.5:
-            audio_filter = f"atempo=0.5,atempo={speed/0.5}"
+            audio_filter = f"atempo=0.5,atempo={speed / 0.5}"
 
         cmd = [
-            runner.ffmpeg_path, "-y", "-hide_banner", "-loglevel", "error",
-            "-i", video_path,
-            "-vf", video_filter, "-af", audio_filter,
-            "-c:v", encoder, "-c:a", "aac",
+            runner.ffmpeg_path,
+            "-y",
+            "-hide_banner",
+            "-loglevel",
+            "error",
+            "-i",
+            video_path,
+            "-vf",
+            video_filter,
+            "-af",
+            audio_filter,
+            "-c:v",
+            encoder,
+            "-c:a",
+            "aac",
         ]
         if encoder == "h264_nvenc":
             cmd += ["-preset", runner._nvenc_preset, "-cq", str(runner._crf), "-b:v", "0"]
@@ -551,30 +617,78 @@ def api_auto_edit():
         for i, seg in enumerate(kept_segments):
             seg_path = os.path.join(temp_dir, f"seg_{i:04d}{ext}")
             if quality == "copy":
-                cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                       "-ss", str(seg.start), "-i", video_path,
-                       "-t", str(seg.duration),
-                       "-avoid_negative_ts", "make_zero",
-                       "-c", "copy", seg_path]
+                cmd = [
+                    ffmpeg,
+                    "-y",
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-ss",
+                    str(seg.start),
+                    "-i",
+                    video_path,
+                    "-t",
+                    str(seg.duration),
+                    "-avoid_negative_ts",
+                    "make_zero",
+                    "-c",
+                    "copy",
+                    seg_path,
+                ]
             elif quality == "h265_10bit_422":
-                cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                       "-ss", str(seg.start), "-i", video_path,
-                       "-t", str(seg.duration),
-                       "-avoid_negative_ts", "make_zero",
-                       "-c:v", "libx265",
-                       "-pix_fmt", "yuv422p10le",
-                       "-preset", "medium",
-                       "-crf", "18",
-                       "-c:a", "pcm_s16le",
-                       seg_path]
+                cmd = [
+                    ffmpeg,
+                    "-y",
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-ss",
+                    str(seg.start),
+                    "-i",
+                    video_path,
+                    "-t",
+                    str(seg.duration),
+                    "-avoid_negative_ts",
+                    "make_zero",
+                    "-c:v",
+                    "libx265",
+                    "-pix_fmt",
+                    "yuv422p10le",
+                    "-preset",
+                    "medium",
+                    "-crf",
+                    "18",
+                    "-c:a",
+                    "pcm_s16le",
+                    seg_path,
+                ]
             else:
-                cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                       "-ss", str(seg.start), "-i", video_path,
-                       "-t", str(seg.duration),
-                       "-avoid_negative_ts", "make_zero",
-                       "-c:v", "libx264", "-preset", "medium", "-crf", "18",
-                       "-c:a", "aac", "-b:a", "192k",
-                       seg_path]
+                cmd = [
+                    ffmpeg,
+                    "-y",
+                    "-hide_banner",
+                    "-loglevel",
+                    "error",
+                    "-ss",
+                    str(seg.start),
+                    "-i",
+                    video_path,
+                    "-t",
+                    str(seg.duration),
+                    "-avoid_negative_ts",
+                    "make_zero",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "medium",
+                    "-crf",
+                    "18",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "192k",
+                    seg_path,
+                ]
             proc = subprocess.run(cmd, capture_output=True)
             if proc.returncode != 0:
                 raise RuntimeError(f"切片段失敗: {proc.stderr.decode(errors='replace')}")
@@ -582,20 +696,43 @@ def api_auto_edit():
         runner.concat_segments(segment_files, output_path)
         if quality != "copy":
             tmp = output_path + ".remux.mp4"
-            cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                   "-i", output_path, "-c", "copy",
-                   "-movflags", "+faststart", tmp]
+            cmd = [
+                ffmpeg,
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                output_path,
+                "-c",
+                "copy",
+                "-movflags",
+                "+faststart",
+                tmp,
+            ]
             proc = subprocess.run(cmd, capture_output=True)
             if proc.returncode == 0:
                 os.replace(tmp, output_path)
         if apply_enhance:
             enhanced = output_path + ".enh" + ext
-            cmd = [ffmpeg, "-y", "-hide_banner", "-loglevel", "error",
-                   "-i", output_path,
-                   "-c:v", "copy",
-                   "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",
-                   "-c:a", "aac", "-b:a", "192k",
-                   enhanced]
+            cmd = [
+                ffmpeg,
+                "-y",
+                "-hide_banner",
+                "-loglevel",
+                "error",
+                "-i",
+                output_path,
+                "-c:v",
+                "copy",
+                "-af",
+                "loudnorm=I=-16:TP=-1.5:LRA=11",
+                "-c:a",
+                "aac",
+                "-b:a",
+                "192k",
+                enhanced,
+            ]
             proc = subprocess.run(cmd, capture_output=True)
             if proc.returncode == 0:
                 os.replace(enhanced, output_path)
@@ -609,13 +746,15 @@ def api_auto_edit():
             shutil.rmtree(temp_dir, ignore_errors=True)
         except Exception:
             pass
-    return jsonify({
-        "success": True,
-        "output_path": output_path,
-        "kept_count": len(kept_segments),
-        "original_duration": result.total_duration,
-        "output_duration": result.used_duration,
-    })
+    return jsonify(
+        {
+            "success": True,
+            "output_path": output_path,
+            "kept_count": len(kept_segments),
+            "original_duration": result.total_duration,
+            "output_duration": result.used_duration,
+        }
+    )
 
 
 @app.route("/api/config")
@@ -635,6 +774,7 @@ def api_browse():
     try:
         import tkinter as tk
         from tkinter import filedialog
+
         root = tk.Tk()
         root.withdraw()
         root.attributes("-topmost", True)
@@ -697,6 +837,7 @@ if __name__ == "__main__":
         print()
 
         from core.edl import export_all
+
         paths = export_all(result, output_dir, fps=result.fps)
 
         usable = sum(1 for s in result.segments if s.is_kept)

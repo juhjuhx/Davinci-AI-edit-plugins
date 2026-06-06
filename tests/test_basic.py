@@ -1,6 +1,7 @@
 """
 Basic smoke tests for Smart A-Roll core module.
 """
+
 import core
 import core.utils as utils
 
@@ -26,6 +27,7 @@ def test_clean_path_strips_bidi():
 def test_sigmoid_confidence():
     """sigmoid_confidence should map logprob to [0, 1] range."""
     from core.analyzer import sigmoid_confidence
+
     # High confidence (good logprob) -> close to 1
     assert sigmoid_confidence(1.0) > 0.95
     # Low confidence (bad logprob) -> close to 0
@@ -37,6 +39,7 @@ def test_sigmoid_confidence():
 def test_config_defaults():
     """Config should provide defaults even when file is missing."""
     from core.config import Config
+
     config = Config(raw={})
     assert isinstance(config.whisper, dict)
     assert isinstance(config.llm, dict)
@@ -45,6 +48,7 @@ def test_config_defaults():
 def test_models_segment_type():
     """SegmentType should expose expected values."""
     from core.models import SegmentType
+
     assert SegmentType.USABLE.value == "usable"
     assert SegmentType.CUT.value == "cut"
     assert SegmentType.FILLER.value == "filler"
@@ -53,6 +57,7 @@ def test_models_segment_type():
 def test_analysis_segment_default():
     """AnalysisSegment default type is USABLE."""
     from core.models import AnalysisSegment
+
     seg = AnalysisSegment(id=1, start=0.0, end=1.0, text="hello")
     assert seg.type == core.models.SegmentType.USABLE
     assert seg.is_kept is True

@@ -1,6 +1,7 @@
 """
 統一資料模型
 """
+
 import time
 from dataclasses import asdict, dataclass, field
 from enum import Enum
@@ -9,19 +10,21 @@ from typing import Any, Dict, List, Optional
 
 class SegmentType(str, Enum):
     """片段類型"""
-    USABLE = "usable"           # 可用
-    CUT = "cut"                 # 要剪
-    SILENCE = "silence"         # 靜音
-    FILLER = "filler"           # 填充詞
-    REPEAT = "repeat"           # 重複
-    HESITATION = "hesitation"   # 猶豫
-    NERVOUS = "nervous"         # 口頭禪
-    CORRECTION = "correction"   # 自我修正
-    UNCERTAIN = "uncertain"     # 信心不足
+
+    USABLE = "usable"  # 可用
+    CUT = "cut"  # 要剪
+    SILENCE = "silence"  # 靜音
+    FILLER = "filler"  # 填充詞
+    REPEAT = "repeat"  # 重複
+    HESITATION = "hesitation"  # 猶豫
+    NERVOUS = "nervous"  # 口頭禪
+    CORRECTION = "correction"  # 自我修正
+    UNCERTAIN = "uncertain"  # 信心不足
 
 
 class Priority(str, Enum):
     """優先級"""
+
     HIGH = "high"
     MID = "mid"
     LOW = "low"
@@ -30,6 +33,7 @@ class Priority(str, Enum):
 @dataclass
 class TranscriptionSegment:
     """Whisper 轉錄片段"""
+
     id: int
     start: float
     end: float
@@ -47,6 +51,7 @@ class TranscriptionSegment:
 @dataclass
 class AnalysisSegment:
     """分析後的可剪輯片段"""
+
     id: int
     start: float
     end: float
@@ -92,6 +97,7 @@ class AnalysisSegment:
 @dataclass
 class VideoInfo:
     """視頻資訊"""
+
     path: str
     duration: float
     fps: float
@@ -105,6 +111,7 @@ class VideoInfo:
 @dataclass
 class AnalysisResult:
     """完整分析結果"""
+
     video_path: str
     video_info: Optional[VideoInfo] = None
     segments: List[AnalysisSegment] = field(default_factory=list)
@@ -139,6 +146,7 @@ class AnalysisResult:
 @dataclass
 class QueueTask:
     """佇列任務"""
+
     id: str
     video_path: str
     status: str = "pending"  # pending, running, done, error

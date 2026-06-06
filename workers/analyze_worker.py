@@ -4,6 +4,7 @@
 - SSE 推送進度給前端
 - 任務狀態查詢
 """
+
 import logging
 import os
 import queue
@@ -136,11 +137,15 @@ class AnalyzeWorker:
                     task.stage = stage
                     task.message = message
                     task.progress = percent
-                    self._notify(task_id, "progress", {
-                        "stage": stage,
-                        "message": message,
-                        "percent": percent,
-                    })
+                    self._notify(
+                        task_id,
+                        "progress",
+                        {
+                            "stage": stage,
+                            "message": message,
+                            "percent": percent,
+                        },
+                    )
 
                 result = self.analyzer.analyze(task.video_path, progress_callback=progress_cb)
 
@@ -158,7 +163,8 @@ class AnalyzeWorker:
                     output_dir = self.config.export.get("result_dir")
                     if output_dir:
                         paths = export_all(
-                            result, output_dir,
+                            result,
+                            output_dir,
                             fps=result.fps,
                             track_index=self.config.export.get("dv_track_index", 1),
                         )

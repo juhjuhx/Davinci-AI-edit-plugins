@@ -38,7 +38,6 @@ def sigmoid_confidence(avg_logprob: float, k: float = 4.0, threshold: float = -0
 
 
 class RulesEngine:
-
     def __init__(self, rules_config: Dict[str, Any]):
         self.filler_patterns = [re.compile(p) for p in rules_config.get("filler_patterns", [])]
         self.repeat_patterns = [re.compile(p) for p in rules_config.get("repeat_patterns", [])]
@@ -111,7 +110,6 @@ class RulesEngine:
 
 
 class AudioAnalyzer:
-
     def __init__(self, config: Config):
         self.config = config
 
@@ -121,8 +119,9 @@ class AudioAnalyzer:
         if not _np.is_available:
             raise ImportError("numpy 未安裝")
 
-    def detect_silence(self, audio_path: str, threshold: float = 0.006,
-                       step: float = 0.5, min_duration: float = 0.5) -> List[Dict[str, float]]:
+    def detect_silence(
+        self, audio_path: str, threshold: float = 0.006, step: float = 0.5, min_duration: float = 0.5
+    ) -> List[Dict[str, float]]:
         self._import_deps()
         librosa = _librosa.load()
         y, sr = librosa.load(audio_path, sr=16000, mono=True)
@@ -143,22 +142,26 @@ class AudioAnalyzer:
                     end_idx = i
                     duration = (end_idx - start_idx) * step
                     if duration >= min_duration:
-                        silences.append({
-                            "start": start_idx * step,
-                            "end": end_idx * step,
-                            "duration": duration,
-                        })
+                        silences.append(
+                            {
+                                "start": start_idx * step,
+                                "end": end_idx * step,
+                                "duration": duration,
+                            }
+                        )
                     in_silence = False
 
         if in_silence:
             end_idx = len(energy)
             duration = (end_idx - start_idx) * step
             if duration >= min_duration:
-                silences.append({
-                    "start": start_idx * step,
-                    "end": end_idx * step,
-                    "duration": duration,
-                })
+                silences.append(
+                    {
+                        "start": start_idx * step,
+                        "end": end_idx * step,
+                        "duration": duration,
+                    }
+                )
 
         return silences
 
@@ -169,14 +172,10 @@ class AudioAnalyzer:
         hop_length = int(step * sr)
         energy = librosa.feature.rms(y=y, hop_length=hop_length)[0]
 
-        return [
-            {"t": i * step, "energy": float(e)}
-            for i, e in enumerate(energy)
-        ]
+        return [{"t": i * step, "energy": float(e)} for i, e in enumerate(energy)]
 
 
 class WhisperTranscriber:
-
     def __init__(self, config: Config):
         self.config = config
         self._model = None
@@ -199,6 +198,7 @@ class WhisperTranscriber:
         if device == "cuda":
             try:
                 import torch
+
                 if not torch.cuda.is_available():
                     logger.warning("CUDA 不可用,改用 CPU")
                     device = "cpu"
@@ -226,6 +226,7 @@ class WhisperTranscriber:
             self._model = None
             try:
                 import torch
+
                 torch.cuda.empty_cache()
             except ImportError:
                 pass
@@ -246,7 +247,9 @@ class WhisperTranscriber:
                 "threshold": wcfg.get("vad_threshold", 0.5),
                 "min_silence_duration_ms": wcfg.get("vad_min_silence_ms", 500),
                 "speech_pad_ms": wcfg.get("vad_speech_pad_ms", 200),
-            } if vad_filter else None,
+            }
+            if vad_filter
+            else None,
         }
 
         logger.info(f"開始轉錄: {audio_path}")
@@ -260,22 +263,23 @@ class WhisperTranscriber:
         segments = []
         for i, seg in enumerate(segments_iter):
             confidence = sigmoid_confidence(seg.avg_logprob, k=sig_k, threshold=sig_th)
-            segments.append(TranscriptionSegment(
-                id=i,
-                start=seg.start,
-                end=seg.end,
-                text=seg.text.strip(),
-                confidence=confidence,
-                avg_logprob=getattr(seg, "avg_logprob", 0.0) or 0.0,
-                no_speech_prob=getattr(seg, "no_speech_prob", 0.0) or 0.0,
-            ))
+            segments.append(
+                TranscriptionSegment(
+                    id=i,
+                    start=seg.start,
+                    end=seg.end,
+                    text=seg.text.strip(),
+                    confidence=confidence,
+                    avg_logprob=getattr(seg, "avg_logprob", 0.0) or 0.0,
+                    no_speech_prob=getattr(seg, "no_speech_prob", 0.0) or 0.0,
+                )
+            )
 
-        logger.info(f"轉錄完成: {len(segments)} 個片段,耗時 {time.time()-t0:.1f}s")
+        logger.info(f"轉錄完成: {len(segments)} 個片段,耗時 {time.time() - t0:.1f}s")
         return segments
 
 
 class Analyzer:
-
     def __init__(self, config: Config):
         self.config = config
         self.whisper = WhisperTranscriber(config)
@@ -312,27 +316,26 @@ class Analyzer:
             logger.warning(f"無法寫入快取: {e}")
 
     def _extract_audio(self, video_path: str) -> str:
-        audio_temp = os.path.join(
-            os.path.dirname(video_path),
-            f".{os.path.basename(video_path)}.audio.wav"
-        )
+        audio_temp = os.path.join(os.path.dirname(video_path), f".{os.path.basename(video_path)}.audio.wav")
         try:
             self._runner.extract_audio(video_path, audio_temp)
         except Exception as e:
             raise RuntimeError(f"音訊提取失敗: {e}")
         return audio_temp
 
-    def _transcribe(self, audio_path: str, result: AnalysisResult,
-                    progress_callback: Optional[Callable] = None):
+    def _transcribe(self, audio_path: str, result: AnalysisResult, progress_callback: Optional[Callable] = None):
         if progress_callback:
             progress_callback("whisper", "Whisper 轉錄中", 20)
         transcriptions = self.whisper.transcribe(audio_path)
         result.transcriptions = transcriptions
         return transcriptions
 
-    def _apply_rules(self, transcriptions: List[TranscriptionSegment],
-                     result: AnalysisResult,
-                     progress_callback: Optional[Callable] = None) -> List[AnalysisSegment]:
+    def _apply_rules(
+        self,
+        transcriptions: List[TranscriptionSegment],
+        result: AnalysisResult,
+        progress_callback: Optional[Callable] = None,
+    ) -> List[AnalysisSegment]:
         if progress_callback:
             progress_callback("filter", "信心度過濾", 60)
         threshold = self.config.analysis.get("confidence_threshold", 0.2)
@@ -375,8 +378,7 @@ class Analyzer:
             logger.warning(f"Energy profile failed: {e}")
             return []
 
-    def _llm_verify(self, segments: List[AnalysisSegment],
-                    progress_callback: Optional[Callable] = None):
+    def _llm_verify(self, segments: List[AnalysisSegment], progress_callback: Optional[Callable] = None):
         if not self.llm or not self.llm.is_ready:
             return
 
@@ -384,7 +386,8 @@ class Analyzer:
             progress_callback("llm", "LLM 二次確認中", 75)
 
         uncertain_texts = [
-            (i, s.text) for i, s in enumerate(segments)
+            (i, s.text)
+            for i, s in enumerate(segments)
             if s.type in (SegmentType.UNCERTAIN, SegmentType.FILLER, SegmentType.HESITATION)
         ]
         for idx, (i, text) in enumerate(uncertain_texts):
@@ -397,8 +400,11 @@ class Analyzer:
                     seg.type = SegmentType.CUT
                     seg.reason = f"LLM 確認剪輯: {r['reason']}"
             if progress_callback:
-                progress_callback("llm", f"LLM 確認中 {idx+1}/{len(uncertain_texts)}",
-                                  75 + int(20 * idx / max(1, len(uncertain_texts))))
+                progress_callback(
+                    "llm",
+                    f"LLM 確認中 {idx + 1}/{len(uncertain_texts)}",
+                    75 + int(20 * idx / max(1, len(uncertain_texts))),
+                )
 
     def _cleanup_temp(self, audio_temp: str):
         if os.path.isfile(audio_temp):
@@ -407,8 +413,7 @@ class Analyzer:
             except OSError:
                 pass
 
-    def analyze(self, video_path: str,
-                progress_callback: Optional[Callable] = None) -> AnalysisResult:
+    def analyze(self, video_path: str, progress_callback: Optional[Callable] = None) -> AnalysisResult:
         video_path = clean_path(video_path)
         t0 = time.time()
         result = AnalysisResult(video_path=video_path)
@@ -467,10 +472,13 @@ class Analyzer:
             result.llm_enabled = self.llm is not None and self.llm.is_ready
 
             if cache_path:
-                self._save_cache(cache_path, {
-                    "fps": result.fps,
-                    "segments": [s.to_dict() for s in analysis_segments],
-                })
+                self._save_cache(
+                    cache_path,
+                    {
+                        "fps": result.fps,
+                        "segments": [s.to_dict() for s in analysis_segments],
+                    },
+                )
 
         finally:
             self.whisper.unload()

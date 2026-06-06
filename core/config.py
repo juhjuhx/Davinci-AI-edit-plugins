@@ -2,6 +2,7 @@
 統一設定管理
 支援從 JSON 載入設定,提供型別安全的存取介面
 """
+
 import json
 import logging
 import os
@@ -117,6 +118,7 @@ def deep_merge(base: dict, override: dict) -> dict:
 @dataclass
 class Config:
     """統一設定"""
+
     raw: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod

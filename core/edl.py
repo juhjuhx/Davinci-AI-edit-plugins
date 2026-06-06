@@ -35,15 +35,12 @@ def seconds_to_tc(seconds: float, fps: float = 30.0, drop_frame: bool = False) -
 
 
 class EDLExporter:
-
-    def __init__(self, fps: float = 30.0, track_index: int = 1,
-                 title: str = "Smart A-Roll Edit"):
+    def __init__(self, fps: float = 30.0, track_index: int = 1, title: str = "Smart A-Roll Edit"):
         self.fps = fps
         self.track_index = track_index
         self.title = title
 
-    def export(self, result: AnalysisResult, output_path: str,
-               export_all: bool = True) -> str:
+    def export(self, result: AnalysisResult, output_path: str, export_all: bool = True) -> str:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
         lines = []
@@ -96,12 +93,18 @@ class EDLExporter:
 
         for seg in result.segments:
             frame = int(seg.start * self.fps)
-            color = "Red" if seg.type == SegmentType.CUT else (
-                "Yellow" if seg.type in (SegmentType.FILLER, SegmentType.HESITATION) else (
-                "Orange" if seg.type == SegmentType.REPEAT else "Green"))
+            color = (
+                "Red"
+                if seg.type == SegmentType.CUT
+                else (
+                    "Yellow"
+                    if seg.type in (SegmentType.FILLER, SegmentType.HESITATION)
+                    else ("Orange" if seg.type == SegmentType.REPEAT else "Green")
+                )
+            )
             name = seg.type.value
             note = seg.text[:100].replace('"', "'")
-            lines.append(f"{frame},{self.fps},{color},{name},\"{note}\",{seg.start:.3f},{seg.end:.3f}")
+            lines.append(f'{frame},{self.fps},{color},{name},"{note}",{seg.start:.3f},{seg.end:.3f}')
 
         with open(output_path, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
@@ -110,30 +113,51 @@ class EDLExporter:
 
 
 class CSVExporter:
-
     def export(self, result: AnalysisResult, output_path: str) -> str:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
         with open(output_path, "w", encoding="utf-8-sig", newline="") as f:
             import csv
+
             writer = csv.writer(f)
-            writer.writerow([
-                "id", "start", "end", "duration", "type", "priority",
-                "confidence", "is_kept", "reason", "text", "manual_override", "rules_hit"
-            ])
+            writer.writerow(
+                [
+                    "id",
+                    "start",
+                    "end",
+                    "duration",
+                    "type",
+                    "priority",
+                    "confidence",
+                    "is_kept",
+                    "reason",
+                    "text",
+                    "manual_override",
+                    "rules_hit",
+                ]
+            )
             for s in result.segments:
-                writer.writerow([
-                    s.id, f"{s.start:.3f}", f"{s.end:.3f}", f"{s.duration:.3f}",
-                    s.type.value, s.priority.value,
-                    f"{s.confidence:.3f}", s.is_kept,
-                    s.reason, s.text, s.manual_override, "|".join(s.rules_hit),
-                ])
+                writer.writerow(
+                    [
+                        s.id,
+                        f"{s.start:.3f}",
+                        f"{s.end:.3f}",
+                        f"{s.duration:.3f}",
+                        s.type.value,
+                        s.priority.value,
+                        f"{s.confidence:.3f}",
+                        s.is_kept,
+                        s.reason,
+                        s.text,
+                        s.manual_override,
+                        "|".join(s.rules_hit),
+                    ]
+                )
         logger.info(f"CSV exported: {output_path}")
         return output_path
 
 
 class TranscriptExporter:
-
     def export_srt(self, result: AnalysisResult, output_path: str) -> str:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
@@ -148,8 +172,7 @@ class TranscriptExporter:
         logger.info(f"SRT exported: {output_path}")
         return output_path
 
-    def export_text(self, result: AnalysisResult, output_path: str,
-                    kept_only: bool = False) -> str:
+    def export_text(self, result: AnalysisResult, output_path: str, kept_only: bool = False) -> str:
         os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
 
         with open(output_path, "w", encoding="utf-8") as f:
@@ -181,8 +204,7 @@ class TranscriptExporter:
         return f"{h:02d}:{m:02d}:{s:06.3f}".replace(".", ",")
 
 
-def export_all(result: AnalysisResult, output_dir: str,
-               fps: float = None, track_index: int = 1) -> Dict[str, str]:
+def export_all(result: AnalysisResult, output_dir: str, fps: float = None, track_index: int = 1) -> Dict[str, str]:
     os.makedirs(output_dir, exist_ok=True)
     base_name = Path(result.video_path).stem
 
