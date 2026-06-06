@@ -14,6 +14,21 @@ authors = [
     {name = "juhjuhx", email = ""},
 ]
 
+[project.urls]
+Homepage = "https://github.com/juhjuhx/Davinci-AI-edit-plugins"
+Repository = "https://github.com/juhjuhx/Davinci-AI-edit-plugins"
+Issues = "https://github.com/juhjuhx/Davinci-AI-edit-plugins/issues"
+Changelog = "https://github.com/juhjuhx/Davinci-AI-edit-plugins/blob/main/CHANGELOG.md"
+
+[project.classifiers]
+Development_Status = "4 - Beta"
+Intended_Audience = "End Users/Desktop"
+License = "GPL-3.0-or-later"
+Operating_System = "Microsoft :: Windows :: Windows 10, Microsoft :: Windows :: Windows 11, POSIX :: Linux, macOS"
+Programming_Language = "Python :: 3.10, Python :: 3.11, Python :: 3.12"
+Topic = "Multimedia :: Video :: Editing"
+Topic = "Scientific/Engineering :: Artificial Intelligence"
+
 dependencies = [
     "faster-whisper>=1.0.0",
     "flask>=3.0.0",

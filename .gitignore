@@ -43,3 +43,26 @@ archive/
 *.avi
 *.mxf
 *.webm
+
+# Merge conflict leftover files
+*.ours
+*.theirs
+*.orig
+*.rej
+
+# Coverage / test artifacts
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Editor backups
+*.swp
+*~
+*.bak
+
+# Local config overrides
+config.local.json
+.env
+.env.local
