@@ -70,7 +70,7 @@ def test_analysis_segment_roundtrip():
     Regression test: previously to_dict() added computed fields (effective_type,
     is_kept, duration) that the dataclass did not accept, crashing the cache reload.
     """
-    from core.models import AnalysisSegment, SegmentType, Priority
+    from core.models import AnalysisSegment, Priority, SegmentType
 
     original = AnalysisSegment(
         id=42,
